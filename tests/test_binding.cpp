@@ -1,0 +1,44 @@
+#include <QtTest>
+#include "slabel/BindingEngine.h"
+#include "slabel/SBindable.h"
+#include "slabel/SButton.h"
+
+class TestBinding : public QObject {
+    Q_OBJECT
+private slots:
+    void twoWaySyncsBothDirections() {
+        SBindableObject a, b;
+        a.setValue(1);
+        BindingEngine::bind(&a, "value", &b, "value");
+        // bind 时初始同步 a→b
+        QCOMPARE(b.value().toInt(), 1);
+        a.setValue(42);
+        QCOMPARE(b.value().toInt(), 42);
+        b.setValue(7);
+        QCOMPARE(a.value().toInt(), 7);   // 反向也同步
+    }
+    void noInfiniteLoop() {
+        SBindableObject a, b;
+        BindingEngine::bind(&a, "value", &b, "value");
+        a.setValue(5);                    // 不应死循环
+        QCOMPARE(a.value().toInt(), 5);
+        QCOMPARE(b.value().toInt(), 5);
+    }
+    void observeInvokesCallback() {
+        SBindableObject a;
+        int seen = -1;
+        BindingEngine::observe(&a, "value", [&](const QVariant& v){ seen = v.toInt(); });
+        a.setValue(9);
+        QCOMPARE(seen, 9);
+    }
+    void unbindStopsSync() {
+        SBindableObject a, b;
+        BindingEngine::bind(&a, "value", &b, "value");
+        BindingEngine::unbind(&a, "value");
+        a.setValue(3);
+        QVERIFY(b.value().toInt() != 3 || b.value().isNull());
+    }
+};
+
+QTEST_MAIN(TestBinding)
+#include "test_binding.moc"
