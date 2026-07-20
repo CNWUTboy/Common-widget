@@ -144,6 +144,23 @@ SLineEdit { background:@bg; color:@text; border:1px solid @primary; }
 
 QSS 变量采用「加载期字符串替换」而非每次绘制计算；代码覆盖只在该控件设定时局部重算，避免全树扫描。
 
+### 4.6 自绘控件的主题支持（token API）
+
+QSS 只作用于 Qt 内建可样式化的绘制；**完全自绘的控件**（自定义 `paintEvent` 用 `QPainter` 直接绘制）不会自动跟随 QSS。为让自绘控件也能跟随主题切换，`ThemeManager` 暴露**主题 token 查询 API**：
+
+- 加载主题时，除做字符串替换外，同时把变量头 `/* @k:v ... */` 解析为 token 表。
+- `QColor ThemeManager::token(const QString& name) const;` 返回当前主题下该语义色（如 `"primary"`）；未定义返回无效 `QColor`。
+- 自绘控件在 `paintEvent` 中查询 token 上色，并连接已有的 `themeChanged(QString)` 信号，在切换时调用 `update()` 重绘。
+
+```cpp
+void SSwatch::paintEvent(QPaintEvent*) {
+    QPainter p(this);
+    p.fillRect(rect(), ThemeManager::instance().token("primary"));
+}
+// 构造中：connect(&ThemeManager::instance(), &ThemeManager::themeChanged,
+//                 this, QOverload<>::of(&QWidget::update));
+```
+
 ---
 
 ## 5. 多语言系统
@@ -313,3 +330,28 @@ standard_lable/
 | 动态文案不随语言刷新 | `setTextTr` 记住源串，`LanguageChange` 时重译（见 5.1） |
 | 双向绑定死循环 | `updating` 标志抑制回写（见 6.3） |
 | Win7 运行时依赖缺失 | 发布清单明确列出 Qt 运行库；CI 在 Win7 目标验证 |
+| 自绘控件不跟随 QSS | 提供主题 token 查询 API + `themeChanged` 重绘（见 4.6、第 13 节） |
+
+---
+
+## 13. 自定义控件支持
+
+库不仅封装 Qt 内建控件，也支持使用方基于 Qt 框架开发的**自定义控件**接入三大能力。
+
+**组合式自定义控件**（继承 `QWidget` 或由标准子控件组合而成）：直接套 CRTP 模板即可获得主题/语言/绑定：
+
+```cpp
+class MyChart : public QWidget { /* 使用方已有控件 */ };
+
+class SLABEL_EXPORT SChart : public SControl<MyChart> {
+    Q_OBJECT
+public:
+    using SControl<MyChart>::SControl;
+};
+```
+
+- 绑定：自定义控件用 `Q_PROPERTY` + `NOTIFY` 暴露属性后，`BindingEngine` 即可用。
+- 语言：有 `setText` 者覆写 `changeEvent` 转发 `retranslate()`；否则跳过。
+- 主题：组合式控件 QSS 正常生效。
+
+**自绘式自定义控件**（自定义 `paintEvent`）：通过 4.6 的 token API 查询主题色并在 `themeChanged` 时重绘，即可完整跟随主题切换。库在 `examples/` 中提供一个自绘示例控件 `SSwatch` 作为参考实现与验证。
