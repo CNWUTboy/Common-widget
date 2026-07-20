@@ -11,6 +11,17 @@
 #include "slabel/ThemeManager.h"
 #include "slabel/LanguageManager.h"
 
+namespace slabel_detail {
+// 探测 Base 是否具备 setText(QString) —— 无文本控件（如 QComboBox、
+// QSpinBox、QTableView 等）没有此接口，retranslate() 需据此在编译期分支，
+// 否则虚函数隐式实例化时会因找不到 setText 而编译失败。
+template<class T, class = void>
+struct HasSetText : std::false_type {};
+template<class T>
+struct HasSetText<T, std::void_t<decltype(std::declval<T&>().setText(QString()))>>
+    : std::true_type {};
+}
+
 // CRTP 能力模板：把主题/语言/绑定挂钩写一次，套到任意 Qt 基类上。
 // 注意：模板类不含 Q_OBJECT；signal 由成员 m_core 提供。
 template<class Base>
@@ -41,8 +52,10 @@ public:
         retranslate();
     }
     void retranslate() override {
-        if (!m_sourceText.isEmpty())
-            this->setText(QCoreApplication::translate("slabel", m_sourceText.constData()));
+        if constexpr (slabel_detail::HasSetText<Base>::value) {
+            if (!m_sourceText.isEmpty())
+                this->setText(QCoreApplication::translate("slabel", m_sourceText.constData()));
+        }
     }
 
     // 主题：代码覆盖（widget 级 QSS，优先级高于应用级）
