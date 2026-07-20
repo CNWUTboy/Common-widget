@@ -38,6 +38,14 @@ private slots:
         a.setValue(3);
         QVERIFY(b.value().toInt() != 3 || b.value().isNull());
     }
+    void rebindReplacesOldBinding() {
+        SBindableObject a, b1, b2;
+        BindingEngine::bind(&a, "value", &b1, "value");
+        BindingEngine::bind(&a, "value", &b2, "value");   // 覆盖同一 key
+        a.setValue(99);
+        QCOMPARE(b2.value().toInt(), 99);                  // 新绑定生效
+        QVERIFY(b1.value().toInt() != 99);                 // 旧绑定已被清理，不再同步
+    }
 };
 
 QTEST_MAIN(TestBinding)

@@ -61,12 +61,14 @@ QString BindingEngine::key(QObject* a, const QByteArray& propA) {
 
 void BindingEngine::bind(QObject* a, const QByteArray& propA,
                          QObject* b, const QByteArray& propB) {
+    unbind(a, propA); // 先清理同 key 旧绑定，避免泄漏与重复同步
     auto* binding = new Binding(a, propA, b, propB, /*twoWay=*/true);
     registry().insert(key(a, propA), binding);
 }
 
 void BindingEngine::observe(QObject* a, const QByteArray& propA,
                             std::function<void(const QVariant&)> cb) {
+    unbind(a, propA); // 先清理同 key 旧绑定，避免泄漏与重复同步
     auto* binding = new Binding(a, propA, a, propA, /*twoWay=*/false);
     binding->observe(std::move(cb));
     registry().insert(key(a, propA), binding);
