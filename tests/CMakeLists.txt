@@ -6,3 +6,4 @@ function(slabel_test name)
 endfunction()
 
 slabel_test(test_controlcore)
+slabel_test(test_thememanager)
