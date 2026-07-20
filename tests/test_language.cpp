@@ -13,11 +13,15 @@ private slots:
         btn.retranslate();
         QCOMPARE(btn.text(), QString("Save"));
     }
-    void managerTracksCurrentLanguage() {
-        LanguageManager::instance().registerLanguage("en", "nonexistent.qm");
-        // 加载失败返回 false，但当前语言仍可查询默认值
-        QVERIFY(!LanguageManager::instance().currentLanguage().isNull()
-                || LanguageManager::instance().currentLanguage().isNull());
+    void unregisteredLanguageFails() {
+        QVERIFY(!LanguageManager::instance().setLanguage("no_such_lang"));
+    }
+    void badPathFailsAndKeepsState() {
+        auto& lm = LanguageManager::instance();
+        const QString before = lm.currentLanguage();
+        lm.registerLanguage("broken", "does_not_exist.qm");
+        QVERIFY(!lm.setLanguage("broken"));        // load 失败返回 false
+        QCOMPARE(lm.currentLanguage(), before);    // 状态未被破坏
     }
 };
 
