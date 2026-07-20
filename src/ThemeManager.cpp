@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QFile>
 #include <QRegularExpression>
+#include <algorithm>
 
 ThemeManager& ThemeManager::instance() {
     static ThemeManager s;
@@ -16,7 +17,7 @@ QHash<QString, QString> ThemeManager::parseVariables(const QString& qss) {
     auto m = header.match(qss);
     if (!m.hasMatch())
         return tokens;
-    QRegularExpression var(QStringLiteral("@(\\w+)\\s*:\\s*(#[0-9A-Fa-f]+|[\\w]+)"));
+    QRegularExpression var(QStringLiteral("@(\\w+)\\s*:\\s*(#[0-9A-Fa-f]+|rgba?\\([^)]*\\)|[\\w.]+)"));
     auto it = var.globalMatch(m.captured(1));
     while (it.hasNext()) {
         auto vm = it.next();
@@ -28,8 +29,14 @@ QHash<QString, QString> ThemeManager::parseVariables(const QString& qss) {
 QString ThemeManager::substituteVariables(const QString& qss) {
     const auto tokens = parseVariables(qss);
     QString out = qss;
-    for (auto it = tokens.constBegin(); it != tokens.constEnd(); ++it)
-        out.replace(QStringLiteral("@") + it.key(), it.value());
+    // 按 key 长度降序替换：避免短变量名（如 @primary）作为长变量名
+    // （如 @primaryDark）的前缀被提前替换，导致长变量名被“吞并”成非法乱码。
+    QStringList keys = tokens.keys();
+    std::sort(keys.begin(), keys.end(), [](const QString& a, const QString& b) {
+        return a.length() > b.length();
+    });
+    for (const QString& key : keys)
+        out.replace(QStringLiteral("@") + key, tokens.value(key));
     return out;
 }
 

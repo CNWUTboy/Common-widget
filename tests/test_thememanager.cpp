@@ -23,6 +23,19 @@ private slots:
         QCOMPARE(tokens.value("primary"), QString("#ff0000"));
         QCOMPARE(tokens.value("bg"), QString("#000000"));
     }
+    void prefixVariablesNotClobbered() {
+        QString qss = "/* @primary:#ff0000 @primaryDark:#800000 */\n"
+                      "X { a:@primaryDark; b:@primary; }";
+        QString out = ThemeManager::substituteVariables(qss);
+        QVERIFY(out.contains("a:#800000"));
+        QVERIFY(out.contains("b:#ff0000"));
+        QVERIFY(!out.contains("@"));
+    }
+    void parsesRgbaValue() {
+        QString qss = "/* @overlay:rgba(0,0,0,0.5) */\nX { }";
+        auto tokens = ThemeManager::parseVariables(qss);
+        QCOMPARE(tokens.value("overlay"), QString("rgba(0,0,0,0.5)"));
+    }
 };
 
 QTEST_MAIN(TestThemeManager)
