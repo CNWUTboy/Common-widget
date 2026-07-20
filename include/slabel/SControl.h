@@ -2,11 +2,14 @@
 #include <QWidget>
 #include <QHash>
 #include <QString>
+#include <QByteArray>
+#include <QCoreApplication>
 #include <type_traits>
 #include <utility>
 #include "slabel/ISControl.h"
 #include "slabel/SControlCore.h"
 #include "slabel/ThemeManager.h"
+#include "slabel/LanguageManager.h"
 
 // CRTP 能力模板：把主题/语言/绑定挂钩写一次，套到任意 Qt 基类上。
 // 注意：模板类不含 Q_OBJECT；signal 由成员 m_core 提供。
@@ -23,13 +26,24 @@ public:
                    (std::is_base_of_v<SControl, std::decay_t<Args>> || ...))>>
     explicit SControl(Args&&... args) : Base(std::forward<Args>(args)...) {
         ThemeManager::instance().registerControl(this);
+        LanguageManager::instance().registerControl(this);
     }
     ~SControl() override {
         ThemeManager::instance().unregisterControl(this);
+        LanguageManager::instance().unregisterControl(this);
     }
 
     QWidget* asWidget() override { return this; }
-    void retranslate() override {} // Task 5 增强
+
+    // 语言：记住源串，切换时自动重译
+    void setTextTr(const char* sourceText) {
+        m_sourceText = QByteArray(sourceText);
+        retranslate();
+    }
+    void retranslate() override {
+        if (!m_sourceText.isEmpty())
+            this->setText(QCoreApplication::translate("slabel", m_sourceText.constData()));
+    }
 
     // 主题：代码覆盖（widget 级 QSS，优先级高于应用级）
     void setThemeOverride(const QString& key, const QString& value) {
@@ -56,4 +70,5 @@ protected:
 
     SControlCore m_core;
     QHash<QString, QString> m_overrides;
+    QByteArray m_sourceText;
 };
