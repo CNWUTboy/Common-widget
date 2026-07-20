@@ -7,3 +7,4 @@ endfunction()
 
 slabel_test(test_controlcore)
 slabel_test(test_thememanager)
+slabel_test(test_scontrol_theme)
