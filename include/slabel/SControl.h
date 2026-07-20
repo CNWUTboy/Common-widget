@@ -2,6 +2,7 @@
 #include <QWidget>
 #include <QHash>
 #include <QString>
+#include <type_traits>
 #include <utility>
 #include "slabel/ISControl.h"
 #include "slabel/SControlCore.h"
@@ -12,7 +13,14 @@
 template<class Base>
 class SControl : public Base, public ISControl {
 public:
-    template<typename... Args>
+    // 转发引用构造：为避免以非 const 左值调用时把拷贝/移动构造"劫持"掉
+    // （从而产生费解的深层模板报错），对单参数且该参数本身是 SControl
+    // 派生/同类的情况做 SFINAE 排除，让编译器改选（被删除的）拷贝构造，
+    // 报错更清晰。
+    template<typename... Args,
+             typename = std::enable_if_t<
+                 !(sizeof...(Args) == 1 &&
+                   (std::is_base_of_v<SControl, std::decay_t<Args>> || ...))>>
     explicit SControl(Args&&... args) : Base(std::forward<Args>(args)...) {
         ThemeManager::instance().registerControl(this);
     }
@@ -30,7 +38,7 @@ public:
     }
     void clearThemeOverride() {
         m_overrides.clear();
-        this->setStyleSheet(QString());
+        applyOverrides();
     }
 
 protected:

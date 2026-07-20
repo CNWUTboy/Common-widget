@@ -23,6 +23,12 @@ private slots:
         QVERIFY(btn.styleSheet().contains("color:#ff0000"));
         QVERIFY(btn.styleSheet().contains("background:#000000"));
     }
+    void constructsWithParent() {
+        QWidget parent;
+        auto* btn = new SButton(&parent);      // 转发构造合法路径仍工作
+        QVERIFY(btn->asWidget() == btn);
+        QCOMPARE(btn->parentWidget(), &parent);
+    }
 };
 
 QTEST_MAIN(TestSControlTheme)
