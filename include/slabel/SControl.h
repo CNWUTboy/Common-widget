@@ -3,13 +3,18 @@
 #include <QHash>
 #include <QString>
 #include <QByteArray>
+#include <QVariant>
+#include <QTimer>
+#include <QStyle>
 #include <QCoreApplication>
+#include <functional>
 #include <type_traits>
 #include <utility>
 #include "slabel/ISControl.h"
 #include "slabel/SControlCore.h"
 #include "slabel/ThemeManager.h"
 #include "slabel/LanguageManager.h"
+#include "slabel/OperationState.h"
 
 namespace slabel_detail {
 // 探测 Base 是否具备 setText(QString) —— 无文本控件（如 QComboBox、
@@ -22,7 +27,7 @@ struct HasSetText<T, std::void_t<decltype(std::declval<T&>().setText(QString()))
     : std::true_type {};
 }
 
-// CRTP 能力模板：把主题/语言/绑定挂钩写一次，套到任意 Qt 基类上。
+// CRTP 能力模板：把主题/语言/绑定/操作状态挂钩写一次，套到任意 Qt 基类上。
 // 注意：模板类不含 Q_OBJECT；signal 由成员 m_core 提供。
 template<class Base>
 class SControl : public Base, public ISControl {
@@ -38,6 +43,10 @@ public:
     explicit SControl(Args&&... args) : Base(std::forward<Args>(args)...) {
         ThemeManager::instance().registerControl(this);
         LanguageManager::instance().registerControl(this);
+        m_opBusyTimer.setSingleShot(true);
+        m_opResetTimer.setSingleShot(true);
+        QObject::connect(&m_opBusyTimer, &QTimer::timeout, &m_core, [this]{ onOperationTimeout(); });
+        QObject::connect(&m_opResetTimer, &QTimer::timeout, &m_core, [this]{ onOperationResetTimeout(); });
     }
     ~SControl() override {
         ThemeManager::instance().unregisterControl(this);
@@ -68,6 +77,29 @@ public:
         applyOverrides();
     }
 
+    // 操作状态反馈能力（RX_OP_STATE）
+    SControlCore& core() { return m_core; }  // 暴露 operationStateChanged 等信号
+
+    void setOperationHandler(std::function<void()> handler) {
+        m_opHandler = std::move(handler);
+    }
+    // 结果回传：仅在"执行中"时生效，迟到/多余的回报会被忽略
+    void reportOperationResult(bool success) {
+        if (m_opState != OperationState::Busy) return;
+        m_opBusyTimer.stop();
+        setOpState(success ? OperationState::Success : OperationState::Failure);
+        if (m_opResetDelayMs > 0) m_opResetTimer.start(m_opResetDelayMs);
+    }
+    OperationState operationState() const { return m_opState; }
+    // 复位：仅在"成功"/"失败"时生效，提前恢复为"待命"
+    void resetOperationState() {
+        if (m_opState != OperationState::Success && m_opState != OperationState::Failure) return;
+        m_opResetTimer.stop();
+        setOpState(OperationState::Idle);
+    }
+    void setOperationTimeoutMs(int ms) { m_opTimeoutMs = ms; }
+    void setOperationResetDelayMs(int ms) { m_opResetDelayMs = ms; }
+
 protected:
     void applyOverrides() {
         if (m_overrides.isEmpty()) {
@@ -81,7 +113,52 @@ protected:
         this->setStyleSheet(QStringLiteral("* {") + body + QStringLiteral("}"));
     }
 
+    // 具体控件（或自定义控件）把自己的"触发"信号接到这里即可接入操作状态反馈能力
+    void triggerOperation() {
+        if (m_opState == OperationState::Busy) return; // 重复触发不产生新操作
+        setOpState(OperationState::Busy);
+        if (m_opTimeoutMs > 0) m_opBusyTimer.start(m_opTimeoutMs);
+        if (m_opHandler) m_opHandler();
+    }
+
     SControlCore m_core;
     QHash<QString, QString> m_overrides;
     QByteArray m_sourceText;
+
+private:
+    void setOpState(OperationState s) {
+        m_opState = s;
+        applyOperationVisual();
+        m_core.notifyOperationStateChanged();
+    }
+    // 默认视觉反馈：写入 Qt 动态属性，交由主题 QSS 的属性选择器呈现
+    void applyOperationVisual() {
+        QWidget* w = this;
+        switch (m_opState) {
+            case OperationState::Busy:    w->setProperty("slabelOperationState", QStringLiteral("busy")); break;
+            case OperationState::Success: w->setProperty("slabelOperationState", QStringLiteral("success")); break;
+            case OperationState::Failure: w->setProperty("slabelOperationState", QStringLiteral("failure")); break;
+            default:                      w->setProperty("slabelOperationState", QVariant()); break;
+        }
+        w->style()->unpolish(w);
+        w->style()->polish(w);
+        w->update();
+    }
+    void onOperationTimeout() {
+        if (m_opState == OperationState::Busy) {
+            setOpState(OperationState::Failure);
+            if (m_opResetDelayMs > 0) m_opResetTimer.start(m_opResetDelayMs);
+        }
+    }
+    void onOperationResetTimeout() {
+        if (m_opState == OperationState::Success || m_opState == OperationState::Failure)
+            setOpState(OperationState::Idle);
+    }
+
+    OperationState m_opState = OperationState::Idle;
+    std::function<void()> m_opHandler;
+    QTimer m_opBusyTimer{this};
+    QTimer m_opResetTimer{this};
+    int m_opTimeoutMs = 10000;
+    int m_opResetDelayMs = 2000;
 };
