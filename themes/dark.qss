@@ -7,3 +7,7 @@ SRadioButton { color:@text; }
 SGroupBox    { color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; }
 SProgressBar { border:1px solid @border; border-radius:4px; text-align:center; }
 SProgressBar::chunk { background:@primary; }
+
+SButton[slabelOperationState="busy"]    { background:#5a5f63; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
+SButton[slabelOperationState="success"] { background:#2fa84f; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
+SButton[slabelOperationState="failure"] { background:#c94f4f; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }

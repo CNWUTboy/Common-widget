@@ -1,4 +1,5 @@
 #include <QtTest>
+#include <QFile>
 #include <QApplication>
 #include "slabel/ThemeManager.h"
 
@@ -15,6 +16,21 @@ private slots:
     }
     void unknownThemeFails() {
         QVERIFY(!ThemeManager::instance().setTheme("nope"));
+    }
+    void defaultThemesContainOperationStateSelectors() {
+        QFile def(QStringLiteral(THEME_DIR "/default.qss"));
+        QVERIFY(def.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString defText = QString::fromUtf8(def.readAll());
+        QVERIFY(defText.contains(QStringLiteral("SButton[slabelOperationState=\"busy\"]")));
+        QVERIFY(defText.contains(QStringLiteral("SButton[slabelOperationState=\"success\"]")));
+        QVERIFY(defText.contains(QStringLiteral("SButton[slabelOperationState=\"failure\"]")));
+
+        QFile dark(QStringLiteral(THEME_DIR "/dark.qss"));
+        QVERIFY(dark.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString darkText = QString::fromUtf8(dark.readAll());
+        QVERIFY(darkText.contains(QStringLiteral("SButton[slabelOperationState=\"busy\"]")));
+        QVERIFY(darkText.contains(QStringLiteral("SButton[slabelOperationState=\"success\"]")));
+        QVERIFY(darkText.contains(QStringLiteral("SButton[slabelOperationState=\"failure\"]")));
     }
 };
 
