@@ -1,0 +1,9 @@
+/* @primary:#3daee9 @bg:#232629 @text:#eff0f1 @border:#4d4d4d */
+SButton      { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; }
+SLineEdit    { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; }
+SComboBox    { background:@bg; color:@text; border:1px solid @border; border-radius:4px; }
+SCheckBox    { color:@text; }
+SRadioButton { color:@text; }
+SGroupBox    { color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; }
+SProgressBar { border:1px solid @border; border-radius:4px; text-align:center; }
+SProgressBar::chunk { background:@primary; }
