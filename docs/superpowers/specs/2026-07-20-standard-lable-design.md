@@ -216,6 +216,15 @@ BindingEngine::unbind(edit, "text");
 
 绑定基于 Qt 信号槽的直接连接，无轮询、无属性扫描；连接建立在 `bind()` 时一次完成。
 
+### 操作状态反馈能力
+
+`SButton`（及未来任何具备"触发操作"语义的控件）通过 `SControl<Base>` 提供的
+`setOperationHandler`/`reportOperationResult`/`operationState`/
+`resetOperationState`/`setOperationTimeoutMs`/`setOperationResetDelayMs` 接入
+待命/执行中/成功/失败四态状态机，默认视觉反馈通过 Qt 动态属性
+`slabelOperationState` + 主题 QSS 属性选择器呈现。详见
+`docs/superpowers/specs/2026-07-21-op-state-design.md`。
+
 ---
 
 ## 7. 控件核心集（首版 15 个）
