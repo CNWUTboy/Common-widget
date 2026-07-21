@@ -48,13 +48,13 @@ protected:
 void triggerOperation();  // 具体控件把自己的"触发"信号接到这里
 ```
 
-内部新增成员：`OperationState m_opState`、`std::function<void()> m_opHandler`、`QTimer* m_opBusyTimer`、`QTimer* m_opResetTimer`、`int m_opTimeoutMs`、`int m_opResetDelayMs`。两个 `QTimer` 以 `this` 为 parent（`Base` 是 `QWidget`/`QObject`），`timeout()` 连接到 `m_core`（已有 `Q_OBJECT`）作为 context object，析构时自动断开——延续 `BindingEngine` 已验证过的"借用已有 QObject 做 context"手法，不需要额外生命周期管理。
+内部新增成员：`OperationState m_opState`、`std::function<void()> m_opHandler`、`QTimer m_opBusyTimer{this}`、`QTimer m_opResetTimer{this}`、`int m_opTimeoutMs`、`int m_opResetDelayMs`。两个 `QTimer` 是值成员，以 `this` 为 parent（`Base` 是 `QWidget`/`QObject`）通过花括号初始化构造，`timeout()` 连接到 `m_core`（已有 `Q_OBJECT`）作为 context object，析构时自动断开——延续 `BindingEngine` 已验证过的"借用已有 QObject 做 context"手法，不需要额外生命周期管理。
 
 ### 状态转移规则
 
 对应需求 3.1.5.3（行为过程）与 3.1.5.4（行为参数：时序、异常条件及异常下的行为）：
 
-1. `triggerOperation()`：若当前为 Busy，直接返回（重复触发不产生新操作，不异常）；否则立即切到 Busy、按 `m_opTimeoutMs` 启动超时定时器，再同步调用登记的 `m_opHandler`（若已登记）。"立即切 Busy" 在调用 handler 之前完成，满足"不等待实际业务处理开始，第一时间给出反馈"。
+1. `triggerOperation()`：若当前为 Busy，直接返回（重复触发不产生新操作，不异常）；若尚未通过 `setOperationHandler()` 登记任何处理方式，同样直接返回，不进入 Busy、不启动超时定时器——这是有意的设计决策：`SButton` 在构造函数里无条件把 `clicked()` 接到 `triggerOperation()`，若不做此判断，任何未接入操作能力、仅作普通按钮使用的 `SButton`（如 `examples/Gallery.cpp` 的 `themeBtn`/`langBtn`，只有外部 `connect` 的主题/语言切换 lambda，从未调用 `setOperationHandler`）每次点击都会被动进入状态机，产生无意义的 Busy→Failure 视觉抖动；只有在满足以上两条之后，才立即切到 Busy、按 `m_opTimeoutMs` 启动超时定时器，再同步调用登记的 `m_opHandler`。"立即切 Busy" 在调用 handler 之前完成，满足"不等待实际业务处理开始，第一时间给出反馈"。
 2. `reportOperationResult(success)`：仅在当前为 Busy 时生效（防御性忽略非 Busy 时的迟到/多余回报，避免状态错乱，例如已超时判失败后业务方才慢悠悠地回报成功）；停止超时定时器，切到 Success 或 Failure，再按 `m_opResetDelayMs` 启动"自动回待命"定时器。
 3. 超时定时器触发：若仍处 Busy，自动切 Failure，同样启动"自动回待命"定时器（对应异常条件三）。
 4. "自动回待命"定时器触发：仅当前处 Success/Failure 才切回 Idle。

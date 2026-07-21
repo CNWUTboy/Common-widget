@@ -116,9 +116,12 @@ protected:
     // 具体控件（或自定义控件）把自己的"触发"信号接到这里即可接入操作状态反馈能力
     void triggerOperation() {
         if (m_opState == OperationState::Busy) return; // 重复触发不产生新操作
+        // 未登记处理方式时，视为该控件未接入操作能力，点击保持原生行为
+        // （不进入 Busy、不启动超时定时器），避免普通按钮用法被状态机干扰。
+        if (!m_opHandler) return;
         setOpState(OperationState::Busy);
         if (m_opTimeoutMs > 0) m_opBusyTimer.start(m_opTimeoutMs);
-        if (m_opHandler) m_opHandler();
+        m_opHandler();
     }
 
     SControlCore m_core;

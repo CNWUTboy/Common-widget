@@ -46,9 +46,16 @@ private slots:
     void timeoutWithoutReportBecomesFailure() {
         SButton btn;
         btn.setOperationTimeoutMs(30);
-        btn.click(); // 不登记 handler，也不回报结果
+        btn.setOperationHandler([]{}); // 登记一个什么都不做的 handler，但从不回报结果
+        btn.click();
         QCOMPARE(int(btn.operationState()), int(OperationState::Busy));
         QTRY_COMPARE(int(btn.operationState()), int(OperationState::Failure));
+    }
+    void triggerWithoutHandlerIsNoOp() {
+        // 回归测试：未登记 handler 时，点击不应进入状态机（保持原生按钮行为）
+        SButton btn;
+        btn.click();
+        QCOMPARE(int(btn.operationState()), int(OperationState::Idle));
     }
     void resetOperationStateEarlyFromFailure() {
         SButton btn;
