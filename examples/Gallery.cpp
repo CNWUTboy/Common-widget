@@ -54,7 +54,7 @@ Gallery::Gallery(QWidget* parent) : QWidget(parent) {
 
     connect(themeBtn, &QPushButton::clicked, this, [this]{
         m_dark = !m_dark;
-        ThemeManager::instance().setTheme(m_dark ? "dark" : "default");
+        ThemeManager::instance().setTheme(m_dark ? "dark" : "light");
     });
     connect(langBtn, &QPushButton::clicked, this, [this]{
         m_en = !m_en;

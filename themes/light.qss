@@ -1,5 +1,5 @@
-/* @primary:#3d0000 @bg:#101010 @text:#ffffff @border:#4d4d4d
-   @fontFamily:"Microsoft YaHei" @fontSizeBase:11px
+/* @primary:#00ffff @bg:#00cccc @text:#000000 @border:#4d4d4d
+   @fontFamily:"Microsoft YaHei" @fontSizeBase:13px
    @iconSave:":/icons/dark/save.svg" */
 
 * { font-family:@fontFamily; font-size:@fontSizeBase; }
@@ -9,7 +9,7 @@
 *[slabelRole="comboBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; }
 *[slabelRole="checkBox"]      { background:@bg; color:@text; }
 *[slabelRole="radioButton"]   { background:@bg; color:@text; }
-*[slabelRole="groupBox"]      { background:@bg;  color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; }
+*[slabelRole="groupBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; }
 *[slabelRole="progressBar"]   { color:@text;  border:1px solid @border; border-radius:4px; text-align:center; }
 *[slabelRole="progressBar"]::chunk { background:@primary; }
 
