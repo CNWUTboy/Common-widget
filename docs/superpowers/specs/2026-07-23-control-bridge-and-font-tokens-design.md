@@ -13,15 +13,17 @@
 
 ### 1. 抽出共享引擎 `SControlEngine`，`SControlBridge` 与 `SControl<Base>` 共用
 
-`SControl<Base>` 目前把"文案重译、主题覆盖表、操作状态机（含两个 QTimer）"这三块逻辑直接写在模板体内。这三块逻辑本身不依赖 `Base` 的具体类型，只需要一个 `QWidget*` 作为操作目标——因此把它们抽成独立类 `SControlEngine`（`include/slabel/SControlEngine.h` + `src/SControlEngine.cpp`），构造时传入目标 `QWidget*`，之后 `SControl<Base>` 和新增的 `SControlBridge` 都持有一个 `SControlEngine` 成员并把公开方法转发给它，而不是各自实现一遍。
+`SControl<Base>` 目前把"文案重译、主题覆盖表、操作状态机（含两个 QTimer）"这三块逻辑直接写在模板体内。**只把与 `Base` 具体类型无关的两块——主题覆盖表、操作状态机——抽成共享类** `SControlEngine`（`include/slabel/SControlEngine.h` + `src/SControlEngine.cpp`），构造时传入目标 `QWidget*`，`SControl<Base>` 和新增的 `SControlBridge` 都持有一个 `SControlEngine` 成员并把这两块的公开方法转发给它。
+
+**文案重译（`setTextTr`/`retranslate`）不抽进共享引擎，`SControl<Base>` 保留原有的编译期 `HasSetText<Base>` SFINAE 实现原封不动**——这是为了不影响现有 15 个内置控件已经在用、经过验证的零开销路径（直接调用 `Base::setText()`，无需经过 `QMetaObject` 属性查找）。`SControlBridge` 拿不到 `Base` 的编译期类型信息，只能自己另外实现一份**运行时**版本：检查 `target->metaObject()->indexOfProperty("text") >= 0`，存在则 `target->setProperty("text", translated)`（`QLabel`/`QAbstractButton`/`QLineEdit` 等都有 `text` 的 `Q_PROPERTY`，`setProperty` 经由该属性的 WRITE 函数间接调用到 `setText()`，效果等价；没有该属性的控件如 `QComboBox`/`QSpinBox` 自动跳过）。这份运行时实现只在 `SControlBridge` 内部使用，不影响 `SControl<Base>` 的现有性能与行为；`include/slabel/SControl.h` 里的 `slabel_detail::HasSetText` 保留不删。
 
 `SControlEngine` **不**实现 `ISControl`、不负责向 `ThemeManager`/`LanguageManager` 注册——注册动作和 `asWidget()`/`retranslate()` 的对外契约仍由持有者（`SControl<Base>` 或 `SControlBridge`）自己完成，原因：
 - `SControl<Base>` 现有测试断言 `btn.asWidget() == &btn`（`tests/test_scontrol_theme.cpp`、`tests/test_controls.cpp`），`asWidget()` 必须返回 `SControl<Base>` 自身，不能是内部引擎，注册身份不能换。
 - 如果 `SControlEngine` 自己也注册一份，会导致语言切换时 `LanguageManager` 对同一个控件调用两次 `retranslate()`（一次通过持有者，一次通过引擎）——重复但表面无害，属于不必要的浪费，不做。
 
-文案重译的实现方式随之从**编译期** `HasSetText<Base>` SFINAE 探测改为**运行时**属性探测：`SControlEngine::retranslate()` 检查 `widget->metaObject()->indexOfProperty("text") >= 0`，存在则 `widget->setProperty("text", translated)`。`QLabel`/`QAbstractButton`（含 `QPushButton`/`QCheckBox`/`QRadioButton`）/`QLineEdit` 均有 `text` 的 `Q_PROPERTY`，`setProperty` 会经由该属性的 WRITE 函数间接调用到 `setText()`，行为等价；`QComboBox`/`QSpinBox`/`QTableView` 等没有 `text` 属性，自动跳过，等价于现状的编译期分支。这一改动让 `include/slabel/SControl.h` 里 `slabel_detail::HasSetText` 这段模板元编程可以删除，同时让 `SControlBridge`（类型已擦除，拿不到 `Base` 的编译期信息）复用同一份逻辑。
+`SControl<Base>` 现有的 `changeEvent` 覆写（响应 `QEvent::LanguageChange`，见 `tests/test_language.cpp` 的 `changeEventDispatchesToRetranslate` 用例）**保留不变**，仍然直接调用自己的 `retranslate()`（编译期路径）。`SControlBridge` 不是 `QWidget`/`QObject` 的天然事件目标，用 `target->installEventFilter(this)` 在自己的 `eventFilter()` 里捕获同一事件，触发运行时版本的 `retranslate()`，达到同等效果。
 
-`SControl<Base>` 现有的 `changeEvent` 覆写（响应 `QEvent::LanguageChange`，见 `tests/test_language.cpp` 的 `changeEventDispatchesToRetranslate` 用例）**保留**，只是内部改为调用 `m_engine.retranslate()`——这是独立于 `LanguageManager` 注册表之外的第二条重译路径（Qt 原生语言切换事件传播），两条路径都要保留，行为不变。`SControlBridge` 不是 `QWidget`/`QObject` 的天然事件目标，用 `target->installEventFilter(this)` 在自己的 `eventFilter()` 里捕获同一事件、达到同等效果。
+**性能与兼容性小结**：现有 `SControl<Base>` 及基于它的 15 个内置控件——文案重译路径不变（仍是编译期直接调用），主题覆盖表和操作状态机只是把已有代码原样搬到 `m_engine` 成员里、操作对象从 `this` 换成传入的 `QWidget*`，指令序列不变，不新增任何调用开销；公开 API 签名和行为完全不变，业务代码零改动。新增的运行时属性查找、`installEventFilter` 事件拦截（`eventFilter` 会收到目标 widget 的所有事件，不止 `LanguageChange`，多一次虚函数转发）只发生在**新增的** `SControlBridge` 路径上，是"给已有自定义控件接入能力"这个新功能本身必须付出的代价，不触及现有代码。
 
 ### 2. 字号从"一条通配规则"变成"每个角色一个独立 token"
 
@@ -39,7 +41,7 @@
 | `src/SControlEngine.cpp`（新增） | 引擎实现 |
 | `include/slabel/SControlBridge.h`（新增） | 组合式桥接 + `slabelAttach()` 自由函数 |
 | `src/SControlBridge.cpp`（新增） | 桥接实现 |
-| `include/slabel/SControl.h` | 内部改为持有 `SControlEngine` 成员并转发；删除 `HasSetText` SFINAE 探测 |
+| `include/slabel/SControl.h` | 覆盖表/操作状态机改为转发给内部 `SControlEngine` 成员；`retranslate`/`setTextTr`/`HasSetText` SFINAE 保留原样不动 |
 | `themes/default.qss` / `dark.qss` / `light.qss` | 各角色规则补充独立 `font-size` token |
 | `CMakeLists.txt` | `SLABEL_SOURCES`/`SLABEL_HEADERS` 追加新文件（`standard_lable.pro` 用 `$$files()` 通配 `include/slabel/*.h`、`src/*.cpp`，新文件放对目录即自动纳入，不用改） |
 | `tests/test_control_bridge.cpp` + `test_control_bridge.pro`（新增） | 桥接能力测试 |
@@ -55,9 +57,6 @@ class SLABEL_EXPORT SControlEngine {
 public:
     explicit SControlEngine(QWidget* widget);
     ~SControlEngine();
-
-    void setTextTr(const char* sourceText);
-    void retranslate();  // 运行时按 "text" 属性探测，无该属性则 no-op
 
     void setThemeOverride(const QString& key, const QString& value);
     void clearThemeOverride();
@@ -77,7 +76,6 @@ private:
     QWidget* m_widget;  // 非持有，生命周期由调用方保证
     SControlCore m_core;
     QHash<QString, QString> m_overrides;
-    QByteArray m_sourceText;
     OperationState m_opState = OperationState::Idle;
     std::function<void()> m_opHandler;
     QTimer m_opBusyTimer;
@@ -89,7 +87,7 @@ private:
 };
 ```
 
-`m_widget` 只是借用指针，`SControlEngine` 不管理其生命周期——持有者（`SControl<Base>` 用 `this`，`SControlBridge` 用外部传入的指针）负责保证引擎不会 outlive 目标控件。两个 `QTimer` 成员构造时不再以 `this`（非 `QObject`）为 parent，改为以 `m_core`（已是 `QObject`）为 parent，`timeout` 信号同样连到 `m_core` 作为 context object，语义与现状一致。
+不含 `setTextTr`/`retranslate`/`m_sourceText`——这两个方法留在各自持有者里单独实现（见上一节说明）。`m_widget` 只是借用指针，`SControlEngine` 不管理其生命周期——持有者（`SControl<Base>` 用 `this`，`SControlBridge` 用外部传入的指针）负责保证引擎不会 outlive 目标控件。两个 `QTimer` 成员构造时不再以 `this`（非 `QObject`）为 parent，改为以 `m_core`（已是 `QObject`）为 parent，`timeout` 信号同样连到 `m_core` 作为 context object，语义与现状一致。
 
 ### `SControl<Base>` 改动
 
@@ -108,9 +106,19 @@ public:
     }
 
     QWidget* asWidget() override { return this; }
-    void retranslate() override { m_engine.retranslate(); }
 
-    void setTextTr(const char* s) { m_engine.setTextTr(s); }
+    // 与现状完全一致：编译期 HasSetText<Base> 分支，不经过 m_engine
+    void setTextTr(const char* sourceText) {
+        m_sourceText = QByteArray(sourceText);
+        retranslate();
+    }
+    void retranslate() override {
+        if constexpr (slabel_detail::HasSetText<Base>::value) {
+            if (!m_sourceText.isEmpty())
+                this->setText(QCoreApplication::translate("slabel", m_sourceText.constData()));
+        }
+    }
+
     void setThemeOverride(const QString& k, const QString& v) { m_engine.setThemeOverride(k, v); }
     void clearThemeOverride() { m_engine.clearThemeOverride(); }
     void setFontSizePx(int px) { m_engine.setFontSizePx(px); }
@@ -125,16 +133,17 @@ public:
 
 protected:
     void changeEvent(QEvent* e) override {
-        if (e->type() == QEvent::LanguageChange) m_engine.retranslate();
+        if (e->type() == QEvent::LanguageChange) retranslate();
         Base::changeEvent(e);
     }
 
 private:
     SControlEngine m_engine;
+    QByteArray m_sourceText;
 };
 ```
 
-对外行为、方法签名与现状完全一致，业务代码（`SLabel`/`SButton` 等 15 个内置控件、Gallery 示例）不需要任何改动。
+对外行为、方法签名、内部执行路径与现状完全一致，业务代码（`SLabel`/`SButton` 等 15 个内置控件、Gallery 示例）不需要任何改动，性能也不受影响——`retranslate`/`setTextTr`/`changeEvent` 三处都是把现状代码原样保留，只有 `setThemeOverride`/`clearThemeOverride`/操作状态机这几个方法体从"直接操作 `this`"变成"转发一层给 `m_engine`"。
 
 ### `SControlBridge`：组合成员 + 自由挂载函数
 
@@ -147,9 +156,12 @@ public:
     ~SControlBridge() override;
 
     QWidget* asWidget() override { return m_target; }
-    void retranslate() override { m_engine.retranslate(); }
 
-    // 其余方法与 SControlEngine 的公开接口一一转发，签名同上（略）
+    void setTextTr(const char* sourceText);  // 运行时版本：见上一节
+    void retranslate() override;             // 按 "text" 属性探测，无该属性则 no-op
+
+    // 其余方法（setThemeOverride/clearThemeOverride/setFontSizePx/操作状态机）
+    // 与 SControlEngine 的公开接口一一转发，签名同上（略）
 
 protected:
     bool eventFilter(QObject* obj, QEvent* e) override;
@@ -157,6 +169,7 @@ protected:
 private:
     QWidget* m_target;
     SControlEngine m_engine;
+    QByteArray m_sourceText;
 };
 
 // 自由挂载：以 widget 为 QObject parent，随其销毁自动释放；零源码改动即可接入
@@ -170,6 +183,7 @@ SLABEL_EXPORT SControlBridge* slabelAttach(QWidget* widget);
 class MyWidget : public QWidget {
 public:
     explicit MyWidget(QWidget* parent = nullptr) : QWidget(parent) {
+        setProperty("slabelRole", "myWidgetRole");  // 推荐：角色贴在类型自己的构造函数里，写一次
         m_slabel.setOperationHandler([this]{ /* ... */ });
     }
 private:
@@ -183,6 +197,8 @@ bridge->setOperationHandler([]{ /* ... */ });
 ```
 
 场景一里 `SControlBridge` 作为值成员，`this`（`MyWidget*`）既是 `target` 又是 `QObject parent`——注意 `SControlBridge` 此时以 `MyWidget` 为 `QObject` 树上的 parent，析构顺序由 C++ 成员声明顺序保证（先于 `MyWidget` 自身析构，因为是它的成员），不依赖 Qt 的 parent-child 自动删除。场景二里 `slabelAttach` 在堆上 `new SControlBridge(widget, /*parent=*/widget)`，完全依赖 Qt parent-child 机制随 `widget` 销毁而自动释放。
+
+**角色标记的推荐写法**：`slabelRole` 决定控件套用哪套集中定义在主题 QSS 里的视觉规则（颜色、字号等），现状（含 `SControl<Base>` 路径）都是调用方手动 `setProperty("slabelRole", ...)` 贴上去的，库本身不会替你自动贴。对于场景一这种源码可改的自定义控件类，建议把这行 `setProperty` 写在类自己的构造函数里（如上例），而不是留给每个实例化调用点——这样同一类型的所有实例自动带上一致的角色，不用每次 `new MyWidget(...)` 都记得再写一遍；这只是"这行代码写在哪"的位置选择，调用次数不变（每个实例仍然只执行一次），没有额外性能开销。场景二（零源码改动）没有构造函数可插入，角色标记只能由挂载方在 `slabelAttach` 之后自行 `setProperty`。
 
 ### 主题 QSS 改动（示例，三个主题同构处理）
 
