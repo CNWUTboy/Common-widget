@@ -10,4 +10,6 @@ SUBDIRS = \
     test_binding \
     test_controls \
     test_theme_files \
-    test_opstate
+    test_opstate \
+    test_control_bridge \
+    test_font_tokens
