@@ -6,6 +6,15 @@
 
 * { font-family:@fontFamily; font-size:@fontSizeBase; }
 
+QPushButton    { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; font-size:@fontSizeButton; }
+QLineEdit      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; font-size:@fontSizeInput; }
+QComboBox      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; font-size:@fontSizeCombo; }
+QCheckBox      { background:@bg; color:@text; font-size:@fontSizeCheckBox; }
+QRadioButton   { background:@bg; color:@text; font-size:@fontSizeRadioButton; }
+QGroupBox      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; font-size:@fontSizeGroupBox; }
+QProgressBar   { color:@text; border:1px solid @border; border-radius:4px; text-align:center; font-size:@fontSizeProgressBar; }
+QProgressBar::chunk { background:@primary; }
+
 *[slabelRole="primaryButton"] { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; font-size:@fontSizeButton; qproperty-icon: url(@iconSave); }
 *[slabelRole="textInput"]     { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; font-size:@fontSizeInput; }
 *[slabelRole="comboBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; font-size:@fontSizeCombo; }

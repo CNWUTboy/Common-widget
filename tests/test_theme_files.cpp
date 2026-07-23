@@ -1,6 +1,7 @@
 #include <QtTest>
 #include <QFile>
 #include <QApplication>
+#include <QRegularExpression>
 #include "slabel/ThemeManager.h"
 
 class TestThemeFiles : public QObject {
@@ -31,6 +32,28 @@ private slots:
         QVERIFY(darkText.contains(QStringLiteral("*[slabelOperationState=\"busy\"]")));
         QVERIFY(darkText.contains(QStringLiteral("*[slabelOperationState=\"success\"]")));
         QVERIFY(darkText.contains(QStringLiteral("*[slabelOperationState=\"failure\"]")));
+    }
+    void defaultThemesContainNativeClassSelectors() {
+        const QStringList classNames = {
+            QStringLiteral("QPushButton"),  QStringLiteral("QLineEdit"),
+            QStringLiteral("QComboBox"),    QStringLiteral("QCheckBox"),
+            QStringLiteral("QRadioButton"), QStringLiteral("QGroupBox"),
+            QStringLiteral("QProgressBar"), QStringLiteral("QProgressBar::chunk"),
+        };
+
+        QFile def(QStringLiteral(THEME_DIR "/default.qss"));
+        QVERIFY(def.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString defText = QString::fromUtf8(def.readAll());
+        for (const auto& cls : classNames)
+            QVERIFY(QRegularExpression(QRegularExpression::escape(cls) + QStringLiteral("\\s*\\{"))
+                        .match(defText).hasMatch());
+
+        QFile dark(QStringLiteral(THEME_DIR "/dark.qss"));
+        QVERIFY(dark.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString darkText = QString::fromUtf8(dark.readAll());
+        for (const auto& cls : classNames)
+            QVERIFY(QRegularExpression(QRegularExpression::escape(cls) + QStringLiteral("\\s*\\{"))
+                        .match(darkText).hasMatch());
     }
     void defaultThemesContainFontAndIconTokens() {
         QFile def(QStringLiteral(THEME_DIR "/default.qss"));
