@@ -76,10 +76,13 @@ target_link_libraries(slabel PUBLIC Qt5::Widgets)
 # ---- 构建库前确保主题已就位（测试/示例运行时依赖）
 add_dependencies(slabel slabel_themes)
 
-# ---- 运行时部署 ----
+# ---- 运行时部署（仅 Windows 需要）----
 # Qt DLL 不能脱离安装目录加载（会导致 0xc0000602）。
 # 解决方案：拷贝 Qt DLL + 生成 qt.conf 指定 Prefix 指向 Qt 安装目录，
 # 这样 Qt 知道去哪找插件、翻译等资源。MinGW 运行时也一并拷贝。
+# 非 Windows 平台没有对应的 .dll/qwindows.dll，整块跳过
+# （同 standard_lable.pro 里 qmake 侧的 win32 {} 限定，避免在 Linux 上构建失败）。
+if(WIN32)
 get_target_property(_qt_core_lib Qt5::Core LOCATION)
 get_filename_component(_qt_bin_dir "${_qt_core_lib}" DIRECTORY)
 get_filename_component(_qt_prefix  "${_qt_bin_dir}/.." ABSOLUTE)
@@ -127,6 +130,7 @@ add_custom_command(TARGET deploy_runtime POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E echo "[Paths]" > "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
     COMMAND ${CMAKE_COMMAND} -E echo "Prefix = ${_qt_prefix}" >> "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
     COMMENT "Generating qt.conf")
+endif()
 
 enable_testing()
 add_subdirectory(tests)
