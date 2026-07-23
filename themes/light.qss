@@ -1,16 +1,18 @@
 /* @primary:#00ffff @bg:#00cccc @text:#000000 @border:#4d4d4d
    @fontFamily:"Microsoft YaHei" @fontSizeBase:13px
+   @fontSizeButton:13px @fontSizeInput:13px @fontSizeCombo:13px
+   @fontSizeCheckBox:13px @fontSizeRadioButton:13px @fontSizeGroupBox:13px @fontSizeProgressBar:13px
    @iconSave:":/icons/dark/save.svg" */
 
 * { font-family:@fontFamily; font-size:@fontSizeBase; }
 
-*[slabelRole="primaryButton"] { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; qproperty-icon: url(@iconSave); }
-*[slabelRole="textInput"]     { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; }
-*[slabelRole="comboBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; }
-*[slabelRole="checkBox"]      { background:@bg; color:@text; }
-*[slabelRole="radioButton"]   { background:@bg; color:@text; }
-*[slabelRole="groupBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; }
-*[slabelRole="progressBar"]   { color:@text;  border:1px solid @border; border-radius:4px; text-align:center; }
+*[slabelRole="primaryButton"] { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; font-size:@fontSizeButton; qproperty-icon: url(@iconSave); }
+*[slabelRole="textInput"]     { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; font-size:@fontSizeInput; }
+*[slabelRole="comboBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; font-size:@fontSizeCombo; }
+*[slabelRole="checkBox"]      { background:@bg; color:@text; font-size:@fontSizeCheckBox; }
+*[slabelRole="radioButton"]   { background:@bg; color:@text; font-size:@fontSizeRadioButton; }
+*[slabelRole="groupBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; font-size:@fontSizeGroupBox; }
+*[slabelRole="progressBar"]   { color:@text;  border:1px solid @border; border-radius:4px; text-align:center; font-size:@fontSizeProgressBar; }
 *[slabelRole="progressBar"]::chunk { background:@primary; }
 
 *[slabelOperationState="busy"]    { background:#5a5f63; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
