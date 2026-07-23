@@ -18,6 +18,7 @@ set(SLABEL_SOURCES
     src/LanguageManager.cpp
     src/SBindable.cpp
     src/SControlCore.cpp
+    src/SControlEngine.cpp
     src/slabel_version.cpp
     src/ThemeManager.cpp
 )
@@ -30,6 +31,7 @@ set(SLABEL_HEADERS
     include/slabel/SBindable.h
     include/slabel/SControl.h
     include/slabel/SControlCore.h
+    include/slabel/SControlEngine.h
     include/slabel/SGlobal.h
     include/slabel/ThemeManager.h
 )
