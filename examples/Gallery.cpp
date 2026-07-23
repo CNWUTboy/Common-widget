@@ -2,6 +2,9 @@
 #include "SSwatch.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QCheckBox>
 #include "widgets/SButton.h"
 #include "widgets/SComboBox.h"
 #include "widgets/SCheckBox.h"
@@ -10,6 +13,7 @@
 #include "slabel/ThemeManager.h"
 #include "slabel/LanguageManager.h"
 #include "slabel/BindingEngine.h"
+#include "slabel/SControlBridge.h"
 
 Gallery::Gallery(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
@@ -29,6 +33,31 @@ Gallery::Gallery(QWidget* parent) : QWidget(parent) {
     boxLay->addWidget(pb);
     boxLay->addWidget(new SSwatch);   // 自绘控件：跟随主题 token 上色
     root->addWidget(box);
+
+    // 用例：未经 S 包装的原生 Qt 控件，通过 slabelAttach 零改造接入
+    // 主题/语言能力——角色化视觉样式仍需手动 setProperty("slabelRole", ...)，
+    // 这是当前机制的边界（角色标记不会被自动推断/贴上）。
+    auto* nativeBox = new SGroupBox;
+    nativeBox->setProperty("slabelRole", "groupBox");
+    nativeBox->setTextTr("原生 Qt 控件（零改造接入）");
+    auto* nativeLay = new QVBoxLayout(nativeBox);
+
+    auto* nativeBtn = new QPushButton;
+    nativeBtn->setProperty("slabelRole", "primaryButton");
+    slabelAttach(nativeBtn)->setTextTr("原生按钮");
+    nativeLay->addWidget(nativeBtn);
+
+    auto* nativeEdit = new QLineEdit;
+    nativeEdit->setProperty("slabelRole", "textInput");
+    slabelAttach(nativeEdit);
+    nativeLay->addWidget(nativeEdit);
+
+    auto* nativeCheck = new QCheckBox;
+    nativeCheck->setProperty("slabelRole", "checkBox");
+    slabelAttach(nativeCheck)->setTextTr("原生复选框");
+    nativeLay->addWidget(nativeCheck);
+
+    root->addWidget(nativeBox);
 
     // 绑定演示：输入框 ↔ 镜像标签
     m_edit = new SLineEdit;
