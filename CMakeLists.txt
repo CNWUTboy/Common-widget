@@ -17,6 +17,7 @@ set(SLABEL_SOURCES
     src/BindingEngine.cpp
     src/LanguageManager.cpp
     src/SBindable.cpp
+    src/SControlBridge.cpp
     src/SControlCore.cpp
     src/SControlEngine.cpp
     src/slabel_version.cpp
@@ -30,6 +31,7 @@ set(SLABEL_HEADERS
     include/slabel/OperationState.h
     include/slabel/SBindable.h
     include/slabel/SControl.h
+    include/slabel/SControlBridge.h
     include/slabel/SControlCore.h
     include/slabel/SControlEngine.h
     include/slabel/SGlobal.h
