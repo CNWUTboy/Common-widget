@@ -1,6 +1,7 @@
 #include <QtTest>
 #include <QDir>
 #include <QTemporaryFile>
+#include <QSignalSpy>
 #include "slabel/ThemeManager.h"
 
 class TestThemeManager : public QObject {
@@ -61,6 +62,19 @@ private slots:
         QCOMPARE(tm.colorToken("primary"), QColor("#ff0000"));
         QVERIFY(tm.iconToken("no_such_key").isNull()); // 未定义 token -> 空路径 -> null QIcon
         QVERIFY(tm.token("no_such_key").isEmpty()); // 未定义 token 返回空字符串
+    }
+    void setThemeEmitsThemeChangedSignal() {
+        QTemporaryFile f(QDir::tempPath() + "/slabel_test_theme_XXXXXX.qss");
+        QVERIFY(f.open());
+        f.write("/* @primary:#00ff00 */\nX { color:@primary; }");
+        f.close();
+
+        auto& tm = ThemeManager::instance();
+        tm.registerTheme("qa_theme_signal", f.fileName());
+        QSignalSpy spy(&tm, &ThemeManager::themeChanged);
+        QVERIFY(tm.setTheme("qa_theme_signal"));
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.at(0).at(0).toString(), QString("qa_theme_signal"));
     }
 };
 

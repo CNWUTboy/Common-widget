@@ -12,4 +12,6 @@ SUBDIRS = \
     test_theme_files \
     test_opstate \
     test_control_bridge \
-    test_font_tokens
+    test_font_tokens \
+    test_control_engine \
+    test_version

@@ -53,6 +53,45 @@ private slots:
         QCOMPARE(calls, 1);
         QCOMPARE(int(bridge.operationState()), int(OperationState::Busy));
     }
+    void asWidgetReturnsTarget() {
+        QPushButton btn;
+        SControlBridge bridge(&btn);
+        QVERIFY(bridge.asWidget() == &btn);
+    }
+    void setFontSizePxAppliesInlineOverride() {
+        QPushButton btn;
+        SControlBridge bridge(&btn);
+        bridge.setFontSizePx(22);
+        QVERIFY(btn.styleSheet().contains("font-size:22px"));
+    }
+    void coreExposesOperationStateChangedSignalAndReportOperationResult() {
+        QPushButton btn;
+        SControlBridge bridge(&btn);
+        QSignalSpy spy(&bridge.core(), &SControlCore::operationStateChanged);
+        bridge.setOperationHandler([&]{ bridge.reportOperationResult(true); });
+        bridge.triggerOperation();
+        QCOMPARE(int(bridge.operationState()), int(OperationState::Success));
+        QCOMPARE(spy.count(), 2); // Idle->Busy, Busy->Success
+    }
+    void resetOperationStateEarlyFromFailure() {
+        QPushButton btn;
+        SControlBridge bridge(&btn);
+        bridge.setOperationResetDelayMs(10000); // 足够长，确保下面的复位不是自动回退触发的
+        bridge.setOperationHandler([&]{ bridge.reportOperationResult(false); });
+        bridge.triggerOperation();
+        QCOMPARE(int(bridge.operationState()), int(OperationState::Failure));
+        bridge.resetOperationState();
+        QCOMPARE(int(bridge.operationState()), int(OperationState::Idle));
+    }
+    void timeoutWithoutReportBecomesFailureViaBridge() {
+        QPushButton btn;
+        SControlBridge bridge(&btn);
+        bridge.setOperationTimeoutMs(30);
+        bridge.setOperationHandler([]{});
+        bridge.triggerOperation();
+        QCOMPARE(int(bridge.operationState()), int(OperationState::Busy));
+        QTRY_COMPARE(int(bridge.operationState()), int(OperationState::Failure));
+    }
     void attachReturnsNonNullAndAutoDestroysWithWidget() {
         auto* widget = new QPushButton;
         SControlBridge* bridge = slabelAttach(widget);

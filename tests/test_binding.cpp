@@ -1,10 +1,20 @@
 #include <QtTest>
+#include <QSignalSpy>
 #include "slabel/BindingEngine.h"
 #include "slabel/SBindable.h"
 
 class TestBinding : public QObject {
     Q_OBJECT
 private slots:
+    void valueChangedSignalEmitsOnSetValue() {
+        SBindableObject a;
+        QSignalSpy spy(&a, &SBindableObject::valueChanged);
+        a.setValue(5);
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.at(0).at(0).toInt(), 5);
+        a.setValue(5); // 相同值不重复触发
+        QCOMPARE(spy.count(), 1);
+    }
     void twoWaySyncsBothDirections() {
         SBindableObject a, b;
         a.setValue(1);

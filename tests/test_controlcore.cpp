@@ -10,6 +10,12 @@ private slots:
         core.notifyChanged();
         QCOMPARE(spy.count(), 1);
     }
+    void emitsSignalOnNotifyOperationStateChanged() {
+        SControlCore core;
+        QSignalSpy spy(&core, &SControlCore::operationStateChanged);
+        core.notifyOperationStateChanged();
+        QCOMPARE(spy.count(), 1);
+    }
 };
 
 QTEST_MAIN(TestControlCore)

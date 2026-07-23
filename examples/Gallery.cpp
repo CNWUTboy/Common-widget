@@ -4,7 +4,11 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QComboBox>
 #include <QCheckBox>
+#include <QRadioButton>
+#include <QGroupBox>
+#include <QProgressBar>
 #include "widgets/SButton.h"
 #include "widgets/SComboBox.h"
 #include "widgets/SCheckBox.h"
@@ -13,7 +17,6 @@
 #include "slabel/ThemeManager.h"
 #include "slabel/LanguageManager.h"
 #include "slabel/BindingEngine.h"
-#include "slabel/SControlBridge.h"
 
 Gallery::Gallery(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
@@ -34,28 +37,26 @@ Gallery::Gallery(QWidget* parent) : QWidget(parent) {
     boxLay->addWidget(new SSwatch);   // 自绘控件：跟随主题 token 上色
     root->addWidget(box);
 
-    // 用例：未经 S 包装的原生 Qt 控件，通过 slabelAttach 零改造接入
-    // 主题/语言能力——角色化视觉样式仍需手动 setProperty("slabelRole", ...)，
-    // 这是当前机制的边界（角色标记不会被自动推断/贴上）。
-    auto* nativeBox = new SGroupBox;
-    nativeBox->setProperty("slabelRole", "groupBox");
-    nativeBox->setTextTr("原生 Qt 控件（零改造接入）");
+    // 用例：纯原生 Qt 控件，不调用任何 setProperty/slabelAttach——
+    // 验证主题 QSS 里新增的 QPushButton/QLineEdit/QComboBox/QCheckBox/
+    // QRadioButton/QGroupBox/QProgressBar class 选择器对未经任何接入的
+    // 原生控件也自动生效（含容器自身：这里就是一个原生 QGroupBox）。
+    auto* nativeBox = new QGroupBox(QStringLiteral("原生 Qt 控件（零样式代码）"));
     auto* nativeLay = new QVBoxLayout(nativeBox);
 
-    auto* nativeBtn = new QPushButton;
-    nativeBtn->setProperty("slabelRole", "primaryButton");
-    slabelAttach(nativeBtn)->setTextTr("原生按钮");
-    nativeLay->addWidget(nativeBtn);
+    nativeLay->addWidget(new QPushButton(QStringLiteral("原生按钮")));
+    nativeLay->addWidget(new QLineEdit);
 
-    auto* nativeEdit = new QLineEdit;
-    nativeEdit->setProperty("slabelRole", "textInput");
-    slabelAttach(nativeEdit);
-    nativeLay->addWidget(nativeEdit);
+    auto* nativeCombo = new QComboBox;
+    nativeCombo->addItems({QStringLiteral("选项一"), QStringLiteral("选项二")});
+    nativeLay->addWidget(nativeCombo);
 
-    auto* nativeCheck = new QCheckBox;
-    nativeCheck->setProperty("slabelRole", "checkBox");
-    slabelAttach(nativeCheck)->setTextTr("原生复选框");
-    nativeLay->addWidget(nativeCheck);
+    nativeLay->addWidget(new QCheckBox(QStringLiteral("原生复选框")));
+    nativeLay->addWidget(new QRadioButton(QStringLiteral("原生单选框")));
+
+    auto* nativeProgress = new QProgressBar;
+    nativeProgress->setValue(60);
+    nativeLay->addWidget(nativeProgress);
 
     root->addWidget(nativeBox);
 

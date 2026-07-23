@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include <QPushButton>
 #include <QLabel>
+#include <QSignalSpy>
 #include "slabel/SControl.h"
 #include "slabel/LanguageManager.h"
 
@@ -36,6 +37,17 @@ private slots:
         QEvent ev(QEvent::LanguageChange);
         QCoreApplication::sendEvent(&lbl, &ev);
         QCOMPARE(lbl.text(), QString("Save"));
+    }
+    void setLanguageSucceedsWithRealQmAndEmitsSignal() {
+        // 之前的用例只覆盖失败路径；这里用真实 .qm 夹具走通成功路径，
+        // 同时验证 languageChanged 信号确实携带新语言名。
+        auto& lm = LanguageManager::instance();
+        lm.registerLanguage("zh_CN_test", QStringLiteral(TRANS_DIR "/slabel_zh_CN.qm"));
+        QSignalSpy spy(&lm, &LanguageManager::languageChanged);
+        QVERIFY(lm.setLanguage("zh_CN_test"));
+        QCOMPARE(lm.currentLanguage(), QString("zh_CN_test"));
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.at(0).at(0).toString(), QString("zh_CN_test"));
     }
 };
 
