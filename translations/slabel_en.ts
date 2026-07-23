@@ -11,5 +11,17 @@
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
+    <message>
+        <source>控件</source>
+        <translation>widget</translation>
+    </message>
+    <message>
+        <source>切换主题</source>
+        <translation>changeTheme</translation>
+    </message>
+    <message>
+        <source>切换语言</source>
+        <translation>changeLanguage</translation>
+    </message>
 </context>
 </TS>

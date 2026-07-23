@@ -21,16 +21,29 @@ private slots:
         QFile def(QStringLiteral(THEME_DIR "/default.qss"));
         QVERIFY(def.open(QIODevice::ReadOnly | QIODevice::Text));
         const QString defText = QString::fromUtf8(def.readAll());
-        QVERIFY(defText.contains(QStringLiteral("SButton[slabelOperationState=\"busy\"]")));
-        QVERIFY(defText.contains(QStringLiteral("SButton[slabelOperationState=\"success\"]")));
-        QVERIFY(defText.contains(QStringLiteral("SButton[slabelOperationState=\"failure\"]")));
+        QVERIFY(defText.contains(QStringLiteral("*[slabelOperationState=\"busy\"]")));
+        QVERIFY(defText.contains(QStringLiteral("*[slabelOperationState=\"success\"]")));
+        QVERIFY(defText.contains(QStringLiteral("*[slabelOperationState=\"failure\"]")));
 
         QFile dark(QStringLiteral(THEME_DIR "/dark.qss"));
         QVERIFY(dark.open(QIODevice::ReadOnly | QIODevice::Text));
         const QString darkText = QString::fromUtf8(dark.readAll());
-        QVERIFY(darkText.contains(QStringLiteral("SButton[slabelOperationState=\"busy\"]")));
-        QVERIFY(darkText.contains(QStringLiteral("SButton[slabelOperationState=\"success\"]")));
-        QVERIFY(darkText.contains(QStringLiteral("SButton[slabelOperationState=\"failure\"]")));
+        QVERIFY(darkText.contains(QStringLiteral("*[slabelOperationState=\"busy\"]")));
+        QVERIFY(darkText.contains(QStringLiteral("*[slabelOperationState=\"success\"]")));
+        QVERIFY(darkText.contains(QStringLiteral("*[slabelOperationState=\"failure\"]")));
+    }
+    void defaultThemesContainFontAndIconTokens() {
+        QFile def(QStringLiteral(THEME_DIR "/default.qss"));
+        QVERIFY(def.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString defText = QString::fromUtf8(def.readAll());
+        QVERIFY(defText.contains(QStringLiteral("font-family")));
+        QVERIFY(defText.contains(QStringLiteral(":/icons/light/save.svg")));
+
+        QFile dark(QStringLiteral(THEME_DIR "/dark.qss"));
+        QVERIFY(dark.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString darkText = QString::fromUtf8(dark.readAll());
+        QVERIFY(darkText.contains(QStringLiteral("font-family")));
+        QVERIFY(darkText.contains(QStringLiteral(":/icons/dark/save.svg")));
     }
 };
 

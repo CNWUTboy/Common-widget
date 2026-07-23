@@ -1,7 +1,6 @@
 #include <QtTest>
 #include "slabel/BindingEngine.h"
 #include "slabel/SBindable.h"
-#include "slabel/SButton.h"
 
 class TestBinding : public QObject {
     Q_OBJECT

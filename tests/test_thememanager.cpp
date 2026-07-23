@@ -1,4 +1,6 @@
 #include <QtTest>
+#include <QDir>
+#include <QTemporaryFile>
 #include "slabel/ThemeManager.h"
 
 class TestThemeManager : public QObject {
@@ -35,6 +37,30 @@ private slots:
         QString qss = "/* @overlay:rgba(0,0,0,0.5) */\nX { }";
         auto tokens = ThemeManager::parseVariables(qss);
         QCOMPARE(tokens.value("overlay"), QString("rgba(0,0,0,0.5)"));
+    }
+    void parsesQuotedStringValues() {
+        // 字体名含空格、图标路径含 : 和 /，都需要引号包裹才能被正确解析
+        QString qss = "/* @fontFamily:\"Microsoft YaHei\" @iconSave:\":/icons/dark/save.svg\" */\nX { }";
+        auto tokens = ThemeManager::parseVariables(qss);
+        QCOMPARE(tokens.value("fontFamily"), QString("Microsoft YaHei")); // 引号被剥离
+        QCOMPARE(tokens.value("iconSave"), QString(":/icons/dark/save.svg"));
+    }
+    void tokenColorTokenIconTokenReflectLoadedTheme() {
+        QTemporaryFile f(QDir::tempPath() + "/slabel_test_theme_XXXXXX.qss");
+        QVERIFY(f.open());
+        f.write("/* @primary:#ff0000 @fontFamily:\"Microsoft YaHei\" "
+                "@iconSave:\":/icons/dark/save.svg\" */\nX { }");
+        f.close();
+
+        auto& tm = ThemeManager::instance();
+        tm.registerTheme("qa_theme", f.fileName());
+        QVERIFY(tm.setTheme("qa_theme"));
+
+        QCOMPARE(tm.token("fontFamily"), QString("Microsoft YaHei")); // token() 原样返回，不做类型转换
+        QCOMPARE(tm.token("iconSave"), QString(":/icons/dark/save.svg"));
+        QCOMPARE(tm.colorToken("primary"), QColor("#ff0000"));
+        QVERIFY(tm.iconToken("no_such_key").isNull()); // 未定义 token -> 空路径 -> null QIcon
+        QVERIFY(tm.token("no_such_key").isEmpty()); // 未定义 token 返回空字符串
     }
 };
 

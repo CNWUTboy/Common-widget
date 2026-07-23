@@ -6,30 +6,123 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
+# 统一输出目录：所有 .dll 放在顶层，测试通过 PATH 查找
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 find_package(Qt5 5.15 REQUIRED COMPONENTS Widgets Test LinguistTools)
 
-# 生成 .qm
+# ---- 显式列举源文件，避免 file(GLOB) 反模式 ----
+set(SLABEL_SOURCES
+    src/BindingEngine.cpp
+    src/LanguageManager.cpp
+    src/SBindable.cpp
+    src/SControlCore.cpp
+    src/slabel_version.cpp
+    src/ThemeManager.cpp
+)
+
+set(SLABEL_HEADERS
+    include/slabel/BindingEngine.h
+    include/slabel/ISControl.h
+    include/slabel/LanguageManager.h
+    include/slabel/OperationState.h
+    include/slabel/SBindable.h
+    include/slabel/SControl.h
+    include/slabel/SControlCore.h
+    include/slabel/SGlobal.h
+    include/slabel/ThemeManager.h
+)
+
+# ---- 翻译：.ts → .qm（构建时生成）----
 qt5_add_translation(SLABEL_QM
     translations/slabel_zh_CN.ts
     translations/slabel_en.ts)
-add_custom_target(slabel_translations ALL DEPENDS ${SLABEL_QM})
 
-# 拷贝主题与 qm 到构建目录，供测试与示例运行时读取
-file(COPY themes DESTINATION ${CMAKE_BINARY_DIR})
-add_custom_command(TARGET slabel_translations POST_BUILD
+# ---- 主题与翻译：构建时拷贝到输出目录 ----
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/themes/dark.qss
+           ${CMAKE_BINARY_DIR}/themes/default.qss
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/themes
+        ${CMAKE_BINARY_DIR}/themes
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/themes/dark.qss
+            ${CMAKE_CURRENT_SOURCE_DIR}/themes/default.qss
+    COMMENT "Copying theme files to build directory"
+)
+
+add_custom_target(slabel_themes DEPENDS
+    ${CMAKE_BINARY_DIR}/themes/dark.qss
+    ${CMAKE_BINARY_DIR}/themes/default.qss)
+
+add_custom_target(slabel_translations ALL
+    DEPENDS ${SLABEL_QM}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/translations
-    COMMAND ${CMAKE_COMMAND} -E copy ${SLABEL_QM} ${CMAKE_BINARY_DIR}/translations)
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SLABEL_QM} ${CMAKE_BINARY_DIR}/translations
+    COMMENT "Copying translation .qm files to build directory"
+)
 
-file(GLOB SLABEL_SOURCES CONFIGURE_DEPENDS src/*.cpp)
-file(GLOB SLABEL_HEADERS CONFIGURE_DEPENDS include/slabel/*.h)
-
-# 头文件也纳入目标源码列表，确保 AUTOMOC 能发现跨目录（include/ vs src/）
-# 声明 Q_OBJECT 的头文件（如 SControlCore.h）并为其生成 moc
+# ---- 库目标 ----
 add_library(slabel SHARED ${SLABEL_SOURCES} ${SLABEL_HEADERS})
 target_compile_definitions(slabel PRIVATE SLABEL_BUILD)
 target_include_directories(slabel PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 target_link_libraries(slabel PUBLIC Qt5::Widgets)
+
+# ---- 构建库前确保主题已就位（测试/示例运行时依赖）
+add_dependencies(slabel slabel_themes)
+
+# ---- 运行时部署 ----
+# Qt DLL 不能脱离安装目录加载（会导致 0xc0000602）。
+# 解决方案：拷贝 Qt DLL + 生成 qt.conf 指定 Prefix 指向 Qt 安装目录，
+# 这样 Qt 知道去哪找插件、翻译等资源。MinGW 运行时也一并拷贝。
+get_target_property(_qt_core_lib Qt5::Core LOCATION)
+get_filename_component(_qt_bin_dir "${_qt_core_lib}" DIRECTORY)
+get_filename_component(_qt_prefix  "${_qt_bin_dir}/.." ABSOLUTE)
+set(_qt_plugins_src "${_qt_prefix}/plugins")
+
+set(_qt_dlls
+    Qt5Core Qt5Gui Qt5Widgets Qt5Test
+)
+set(_mingw_dlls
+    libgcc_s_seh-1 libstdc++-6 libwinpthread-1
+)
+
+add_custom_target(deploy_runtime ALL
+    COMMENT "Deploying Qt/MinGW runtime DLLs + qt.conf")
+
+# Qt DLL
+foreach(_dll ${_qt_dlls})
+    add_custom_command(TARGET deploy_runtime POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${_qt_bin_dir}/${_dll}.dll"
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/"
+        COMMENT "Deploy ${_dll}.dll")
+endforeach()
+
+# MinGW 运行时 DLL
+foreach(_dll ${_mingw_dlls})
+    add_custom_command(TARGET deploy_runtime POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${_qt_bin_dir}/${_dll}.dll"
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/"
+        COMMENT "Deploy ${_dll}.dll")
+endforeach()
+
+# Qt 平台插件
+add_custom_command(TARGET deploy_runtime POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${_qt_plugins_src}/platforms/qwindows.dll"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms/"
+    COMMENT "Deploy Qt platform plugin")
+
+# qt.conf：告诉 Qt 安装目录在哪，否则 Qt DLL 在构建目录下找不到资源
+add_custom_command(TARGET deploy_runtime POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "[Paths]" > "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
+    COMMAND ${CMAKE_COMMAND} -E echo "Prefix = ${_qt_prefix}" >> "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
+    COMMENT "Generating qt.conf")
 
 enable_testing()
 add_subdirectory(tests)

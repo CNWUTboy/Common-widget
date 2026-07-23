@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QTimer>
 #include <QStyle>
+#include <QEvent>
 #include <QCoreApplication>
 #include <functional>
 #include <type_traits>
@@ -100,7 +101,26 @@ public:
     void setOperationTimeoutMs(int ms) { m_opTimeoutMs = ms; }
     void setOperationResetDelayMs(int ms) { m_opResetDelayMs = ms; }
 
+    // 具体控件（或自定义控件，含业务层直接实例化的 SControl<T>）把自己的
+    // "触发"信号接到这里即可接入操作状态反馈能力，无需继承。
+    void triggerOperation() {
+        if (m_opState == OperationState::Busy) return; // 重复触发不产生新操作
+        // 未登记处理方式时，视为该控件未接入操作能力，点击保持原生行为
+        // （不进入 Busy、不启动超时定时器），避免普通按钮用法被状态机干扰。
+        if (!m_opHandler) return;
+        setOpState(OperationState::Busy);
+        if (m_opTimeoutMs > 0) m_opBusyTimer.start(m_opTimeoutMs);
+        m_opHandler();
+    }
+
 protected:
+    // 语言切换自动重译：任意 Base 通用，业务层直接用 SControl<T> 无需子类
+    // 重写 changeEvent 即可获得该能力。
+    void changeEvent(QEvent* e) override {
+        if (e->type() == QEvent::LanguageChange) retranslate();
+        Base::changeEvent(e);
+    }
+
     void applyOverrides() {
         if (m_overrides.isEmpty()) {
             this->setStyleSheet(QString());
@@ -111,17 +131,6 @@ protected:
             body += it.key() + QStringLiteral(":") + it.value() + QStringLiteral(";");
         // widget 级样式表以自身为选择器，天然覆盖应用级 QSS
         this->setStyleSheet(QStringLiteral("* {") + body + QStringLiteral("}"));
-    }
-
-    // 具体控件（或自定义控件）把自己的"触发"信号接到这里即可接入操作状态反馈能力
-    void triggerOperation() {
-        if (m_opState == OperationState::Busy) return; // 重复触发不产生新操作
-        // 未登记处理方式时，视为该控件未接入操作能力，点击保持原生行为
-        // （不进入 Busy、不启动超时定时器），避免普通按钮用法被状态机干扰。
-        if (!m_opHandler) return;
-        setOpState(OperationState::Busy);
-        if (m_opTimeoutMs > 0) m_opBusyTimer.start(m_opTimeoutMs);
-        m_opHandler();
     }
 
     SControlCore m_core;

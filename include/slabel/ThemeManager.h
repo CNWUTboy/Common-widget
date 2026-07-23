@@ -3,6 +3,7 @@
 #include <QHash>
 #include <QSet>
 #include <QColor>
+#include <QIcon>
 #include "slabel/SGlobal.h"
 #include "slabel/ISControl.h"
 
@@ -24,8 +25,11 @@ public:
     static QHash<QString, QString> parseVariables(const QString& qss);
     // 用 parseVariables 把 @k 替换为 v
     static QString substituteVariables(const QString& qss);
-    // 当前主题下的语义色（供自绘控件查询）；未定义返回无效 QColor
-    QColor token(const QString& name) const { return QColor(m_tokens.value(name)); }
+    // 当前主题下的原始 token 值（颜色/字体/图标路径等，供自绘控件查询）；
+    // 未定义返回空字符串。类型转换由调用方按需选择下面的便捷方法或自行处理。
+    QString token(const QString& name) const { return m_tokens.value(name); }
+    QColor colorToken(const QString& name) const { return QColor(token(name)); }
+    QIcon iconToken(const QString& name) const { return QIcon(token(name)); }
 
 signals:
     void themeChanged(const QString& name);

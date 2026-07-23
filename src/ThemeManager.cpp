@@ -17,11 +17,18 @@ QHash<QString, QString> ThemeManager::parseVariables(const QString& qss) {
     auto m = header.match(qss);
     if (!m.hasMatch())
         return tokens;
-    QRegularExpression var(QStringLiteral("@(\\w+)\\s*:\\s*(#[0-9A-Fa-f]+|rgba?\\([^)]*\\)|[\\w.]+)"));
+    // 值可以是双引号/单引号包裹的字符串（字体名含空格、图标路径含 :// 等符号），
+    // 也可以是原有的 hex 色值/rgba()/裸词写法；引号在解析时会被剥离，
+    // 这样 substituteVariables 替换进 QSS 正文和 C++ token() 拿到的是同一份表示。
+    QRegularExpression var(QStringLiteral(
+        "@(\\w+)\\s*:\\s*(?:\"([^\"]*)\"|'([^']*)'|(#[0-9A-Fa-f]+|rgba?\\([^)]*\\)|[\\w.]+))"));
     auto it = var.globalMatch(m.captured(1));
     while (it.hasNext()) {
         auto vm = it.next();
-        tokens.insert(vm.captured(1), vm.captured(2)); // key 不含 @
+        const QString value = !vm.captured(2).isNull() ? vm.captured(2)
+                             : !vm.captured(3).isNull() ? vm.captured(3)
+                             : vm.captured(4);
+        tokens.insert(vm.captured(1), value); // key 不含 @
     }
     return tokens;
 }

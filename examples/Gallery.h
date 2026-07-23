@@ -1,7 +1,7 @@
 #pragma once
 #include <QWidget>
-#include "slabel/SLineEdit.h"
-#include "slabel/SLabel.h"
+#include "widgets/SLineEdit.h"
+#include "widgets/SLabel.h"
 
 class Gallery : public QWidget {
     Q_OBJECT

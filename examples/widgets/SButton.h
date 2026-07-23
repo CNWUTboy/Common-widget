@@ -1,12 +1,10 @@
 #pragma once
 #include <QPushButton>
-#include <QEvent>
 #include <type_traits>
 #include <utility>
-#include "slabel/SGlobal.h"
 #include "slabel/SControl.h"
 
-class SLABEL_EXPORT SButton : public SControl<QPushButton> {
+class SButton : public SControl<QPushButton> {
     Q_OBJECT
 public:
     // 转发构造 + 接入操作状态反馈能力：把 clicked() 接到 triggerOperation()。
@@ -18,11 +16,5 @@ public:
     explicit SButton(Args&&... args)
         : SControl<QPushButton>(std::forward<Args>(args)...) {
         connect(this, &QPushButton::clicked, this, &SButton::triggerOperation);
-    }
-protected:
-    void changeEvent(QEvent* e) override {
-        if (e->type() == QEvent::LanguageChange)
-            retranslate();
-        QPushButton::changeEvent(e);
     }
 };

@@ -1,6 +1,14 @@
 build/
+bin/
 *.o
 *.so
 *.dll
+*.qm
 *.user
 moc_*
+# IDE & misc
+.vscode/
+.claude/
+*.swp
+*~
+.DS_Store

@@ -17,7 +17,7 @@ public:
 protected:
     void paintEvent(QPaintEvent*) override {
         QPainter p(this);
-        QColor c = ThemeManager::instance().token("primary");
+        QColor c = ThemeManager::instance().colorToken("primary");
         if (!c.isValid()) c = Qt::gray;
         p.fillRect(rect(), c);
     }

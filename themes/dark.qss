@@ -1,13 +1,18 @@
-/* @primary:#3daee9 @bg:#232629 @text:#eff0f1 @border:#4d4d4d */
-SButton      { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; }
-SLineEdit    { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; }
-SComboBox    { background:@bg; color:@text; border:1px solid @border; border-radius:4px; }
-SCheckBox    { color:@text; }
-SRadioButton { color:@text; }
-SGroupBox    { color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; }
-SProgressBar { border:1px solid @border; border-radius:4px; text-align:center; }
-SProgressBar::chunk { background:@primary; }
+/* @primary:#3daee9 @bg:#232629 @text:#eff0f1 @border:#4d4d4d
+   @fontFamily:"Microsoft YaHei" @fontSizeBase:13px
+   @iconSave:":/icons/dark/save.svg" */
 
-SButton[slabelOperationState="busy"]    { background:#5a5f63; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
-SButton[slabelOperationState="success"] { background:#2fa84f; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
-SButton[slabelOperationState="failure"] { background:#c94f4f; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
+* { font-family:@fontFamily; font-size:@fontSizeBase; }
+
+*[slabelRole="primaryButton"] { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; qproperty-icon: url(@iconSave); }
+*[slabelRole="textInput"]     { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; }
+*[slabelRole="comboBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; }
+*[slabelRole="checkBox"]      { color:@text; }
+*[slabelRole="radioButton"]   { color:@text; }
+*[slabelRole="groupBox"]      { color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; }
+*[slabelRole="progressBar"]   { border:1px solid @border; border-radius:4px; text-align:center; }
+*[slabelRole="progressBar"]::chunk { background:@primary; }
+
+*[slabelOperationState="busy"]    { background:#5a5f63; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
+*[slabelOperationState="success"] { background:#2fa84f; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
+*[slabelOperationState="failure"] { background:#c94f4f; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
