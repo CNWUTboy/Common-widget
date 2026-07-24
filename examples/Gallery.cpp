@@ -77,6 +77,18 @@ Gallery::Gallery(QWidget* parent) : QWidget(parent) {
     customLay->addWidget(lightWarning);
     customLay->addWidget(lightOffline);
     customLay->addStretch();
+
+    // 可运行时切换状态的灯 + 按钮：点按钮在 离线→警告→在线 间轮换，
+    // 直观演示"状态切换"（与主题/语言切换相互独立）。
+    m_statusLight = new StatusLight;
+    m_statusLight->setStatus(StatusLight::Status::Offline);
+    m_cycleBtn = new QPushButton;
+    connect(m_cycleBtn, &QPushButton::clicked, this, [this]{
+        m_statusIdx = (m_statusIdx + 1) % 3;
+        m_statusLight->setStatus(static_cast<StatusLight::Status>(m_statusIdx));
+    });
+    customLay->addWidget(m_statusLight);
+    customLay->addWidget(m_cycleBtn);
     root->addWidget(m_customBox);
 
     // 演示：输入框 → 镜像标签，纯原生 Qt 信号槽（不依赖 slabel 绑定能力）
@@ -122,6 +134,7 @@ void Gallery::retranslateNative() {
     m_nativeCheck->setText(tr("原生复选框"));
     m_nativeRadio->setText(tr("原生单选框"));
     m_customBox->setTitle(tr("独立自定义控件（不依赖 SControl）"));
+    m_cycleBtn->setText(tr("切换状态"));
 }
 
 void Gallery::changeEvent(QEvent* e) {

@@ -9,6 +9,7 @@ class QCheckBox;
 class QRadioButton;
 class QComboBox;
 class QEvent;
+class StatusLight;
 
 class Gallery : public QWidget {
     Q_OBJECT
@@ -33,4 +34,9 @@ private:
     QCheckBox* m_nativeCheck = nullptr;
     QRadioButton* m_nativeRadio = nullptr;
     QGroupBox* m_customBox = nullptr;
+
+    // 可运行时切换状态的自定义控件 + 触发按钮
+    StatusLight* m_statusLight = nullptr;
+    QPushButton* m_cycleBtn = nullptr;
+    int m_statusIdx = 0; // 对应 StatusLight::Status 枚举序（Offline/Warning/Online）
 };

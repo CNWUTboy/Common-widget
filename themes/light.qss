@@ -1,4 +1,5 @@
 /* @primary:#00ffff @bg:#00cccc @text:#000000 @border:#4d4d4d
+   @statusOnline:#1a7f37 @statusWarning:#e6a700 @statusOffline:#57606a
    @fontFamily:"Microsoft YaHei" @fontSizeBase:13px
    @fontSizeButton:13px @fontSizeInput:13px @fontSizeCombo:13px
    @fontSizeCheckBox:13px @fontSizeRadioButton:13px @fontSizeGroupBox:13px @fontSizeProgressBar:13px

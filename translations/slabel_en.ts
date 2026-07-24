@@ -54,6 +54,10 @@
         <source>独立自定义控件（不依赖 SControl）</source>
         <translation>Standalone Custom Widget (no SControl)</translation>
     </message>
+    <message>
+        <source>切换状态</source>
+        <translation>Cycle Status</translation>
+    </message>
 </context>
 <context>
     <name>StatusLight</name>

@@ -34,19 +34,25 @@ protected:
         QWidget::changeEvent(e);
     }
 
+    // 主题取色：优先用当前主题的 token，主题未定义该 token 时回退到给定默认色
+    static QColor themeColor(const char* token, const char* fallback) {
+        QColor c = ThemeManager::instance().colorToken(token);
+        return c.isValid() ? c : QColor(fallback);
+    }
+
     void paintEvent(QPaintEvent*) override {
+        // 状态主色也走主题 token（@statusOnline/@statusWarning/@statusOffline），
+        // 随主题切换而变；主题未声明时回退到语义默认色。
         QColor dot;
         QString label;
         switch (m_status) {
-        case Status::Online:  dot = QColor("#28a745"); label = tr("在线"); break;
-        case Status::Warning: dot = QColor("#ffc107"); label = tr("警告"); break;
-        case Status::Offline: dot = QColor("#6c757d"); label = tr("离线"); break;
+        case Status::Online:  dot = themeColor("statusOnline",  "#28a745"); label = tr("在线"); break;
+        case Status::Warning: dot = themeColor("statusWarning", "#ffc107"); label = tr("警告"); break;
+        case Status::Offline: dot = themeColor("statusOffline", "#6c757d"); label = tr("离线"); break;
         }
-        // 主题相关颜色（描边、文字）走 token，随主题切换
-        QColor ring = ThemeManager::instance().colorToken("border");
-        if (!ring.isValid()) ring = Qt::darkGray;
-        QColor textColor = ThemeManager::instance().colorToken("text");
-        if (!textColor.isValid()) textColor = Qt::black;
+        // 描边、文字色同样走 token，随主题切换
+        QColor ring = themeColor("border", "#a9a9a9");
+        QColor textColor = themeColor("text", "#000000");
 
         QPainter p(this);
         p.setRenderHint(QPainter::Antialiasing);

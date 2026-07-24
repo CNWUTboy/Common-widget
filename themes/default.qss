@@ -1,4 +1,5 @@
 /* @primary:#0d6efd @bg:#ffffff @text:#212529 @border:#ced4da
+   @statusOnline:#28a745 @statusWarning:#ffc107 @statusOffline:#6c757d
    @fontFamily:"Segoe UI" @fontSizeBase:13px
    @fontSizeButton:13px @fontSizeInput:13px @fontSizeCombo:13px
    @fontSizeCheckBox:13px @fontSizeRadioButton:13px @fontSizeGroupBox:13px @fontSizeProgressBar:13px
