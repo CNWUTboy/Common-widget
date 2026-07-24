@@ -34,6 +34,7 @@ private:
     QCheckBox* m_nativeCheck = nullptr;
     QRadioButton* m_nativeRadio = nullptr;
     QGroupBox* m_customBox = nullptr;
+    QGroupBox* m_accentBox = nullptr;
 
     // 可运行时切换状态的自定义控件 + 触发按钮
     StatusLight* m_statusLight = nullptr;

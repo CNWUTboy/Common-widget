@@ -58,6 +58,25 @@
         <source>切换状态</source>
         <translation>切换状态</translation>
     </message>
+    <message>
+        <source>自定义按钮（类型选择器全局控样式）</source>
+        <translation>自定义按钮（类型选择器全局控样式）</translation>
+    </message>
+</context>
+<context>
+    <name>AccentButton</name>
+    <message>
+        <source>确定</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <source>取消</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <source>应用</source>
+        <translation>应用</translation>
+    </message>
 </context>
 <context>
     <name>StatusLight</name>

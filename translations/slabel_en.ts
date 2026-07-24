@@ -58,6 +58,25 @@
         <source>切换状态</source>
         <translation>Cycle Status</translation>
     </message>
+    <message>
+        <source>自定义按钮（类型选择器全局控样式）</source>
+        <translation>Custom Button (type-selector global style)</translation>
+    </message>
+</context>
+<context>
+    <name>AccentButton</name>
+    <message>
+        <source>确定</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <source>取消</source>
+        <translation>Cancel</translation>
+    </message>
+    <message>
+        <source>应用</source>
+        <translation>Apply</translation>
+    </message>
 </context>
 <context>
     <name>StatusLight</name>

@@ -1,6 +1,7 @@
 #include "Gallery.h"
 #include "SSwatch.h"
 #include "StatusLight.h"
+#include "AccentButton.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QEvent>
@@ -91,6 +92,18 @@ Gallery::Gallery(QWidget* parent) : QWidget(parent) {
     customLay->addWidget(m_cycleBtn);
     root->addWidget(m_customBox);
 
+    // 用例：独立自定义按钮 AccentButton（继承 QPushButton，不依赖 SControl）。
+    // 风格：themes/*.qss 里以类名 "AccentButton" 为选择器的规则全局控制本类型
+    //       所有实例的样式（改 qss 即全局生效，零逐控件代码）。
+    // 文字：各实例自设文案（原生 tr()），统一随语言切换自动重译。
+    m_accentBox = new QGroupBox;
+    auto* accentLay = new QHBoxLayout(m_accentBox);
+    accentLay->addWidget(new AccentButton("确定"));
+    accentLay->addWidget(new AccentButton("取消"));
+    accentLay->addWidget(new AccentButton("应用"));
+    accentLay->addStretch();
+    root->addWidget(m_accentBox);
+
     // 演示：输入框 → 镜像标签，纯原生 Qt 信号槽（不依赖 slabel 绑定能力）
     m_edit = new SLineEdit;
     m_edit->setProperty("slabelRole", "textInput");
@@ -135,6 +148,7 @@ void Gallery::retranslateNative() {
     m_nativeRadio->setText(tr("原生单选框"));
     m_customBox->setTitle(tr("独立自定义控件（不依赖 SControl）"));
     m_cycleBtn->setText(tr("切换状态"));
+    m_accentBox->setTitle(tr("自定义按钮（类型选择器全局控样式）"));
 }
 
 void Gallery::changeEvent(QEvent* e) {
