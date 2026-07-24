@@ -7,9 +7,7 @@ class SLABEL_EXPORT SControlCore : public QObject {
     Q_OBJECT
 public:
     explicit SControlCore(QObject* parent = nullptr) : QObject(parent) {}
-    void notifyChanged() { emit bindablePropertyChanged(); }
     void notifyOperationStateChanged() { emit operationStateChanged(); }
 signals:
-    void bindablePropertyChanged();
     void operationStateChanged();
 };

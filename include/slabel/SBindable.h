@@ -4,7 +4,8 @@
 #include "slabel/SGlobal.h"
 
 // 轻量可绑定数据宿主：业务对象可继承或直接使用
-class SLABEL_EXPORT SBindableObject : public QObject {
+class SLABEL_EXPORT SLABEL_DEPRECATED(
+    "状态绑定能力已弃用，将在后续版本移除；请改用原生 Qt 信号/槽或属性绑定") SBindableObject : public QObject {
     Q_OBJECT
     Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged)
 public:

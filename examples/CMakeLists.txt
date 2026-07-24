@@ -5,6 +5,7 @@ add_executable(slabel_gallery
     Gallery.cpp
     Gallery.h
     SSwatch.h
+    StatusLight.h
     widgets/SButton.h
     widgets/SCheckBox.h
     widgets/SComboBox.h

@@ -4,12 +4,6 @@
 class TestControlCore : public QObject {
     Q_OBJECT
 private slots:
-    void emitsSignalOnNotify() {
-        SControlCore core;
-        QSignalSpy spy(&core, &SControlCore::bindablePropertyChanged);
-        core.notifyChanged();
-        QCOMPARE(spy.count(), 1);
-    }
     void emitsSignalOnNotifyOperationStateChanged() {
         SControlCore core;
         QSignalSpy spy(&core, &SControlCore::operationStateChanged);

@@ -1,7 +1,9 @@
 #include "Gallery.h"
 #include "SSwatch.h"
+#include "StatusLight.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QEvent>
 #include <QPushButton>
 #include <QLineEdit>
 #include <QComboBox>
@@ -16,7 +18,6 @@
 #include "widgets/SGroupBox.h"
 #include "slabel/ThemeManager.h"
 #include "slabel/LanguageManager.h"
-#include "slabel/BindingEngine.h"
 
 Gallery::Gallery(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
@@ -38,34 +39,52 @@ Gallery::Gallery(QWidget* parent) : QWidget(parent) {
     root->addWidget(box);
 
     // 用例：纯原生 Qt 控件，不调用任何 setProperty/slabelAttach——
-    // 验证主题 QSS 里新增的 QPushButton/QLineEdit/QComboBox/QCheckBox/
-    // QRadioButton/QGroupBox/QProgressBar class 选择器对未经任何接入的
-    // 原生控件也自动生效（含容器自身：这里就是一个原生 QGroupBox）。
-    auto* nativeBox = new QGroupBox(QStringLiteral("原生 Qt 控件（零样式代码）"));
-    auto* nativeLay = new QVBoxLayout(nativeBox);
+    // 样式：主题 QSS 里的 QPushButton/QLineEdit/... class 选择器对未经任何
+    //       接入的原生控件自动生效（零样式代码，含容器 QGroupBox 自身）。
+    // 翻译：文案用原生 tr() 标记，切语言由 Gallery::changeEvent 统一重译，
+    //       不使用 slabel 的 setTextTr/注册机制。
+    m_nativeBox = new QGroupBox;
+    auto* nativeLay = new QVBoxLayout(m_nativeBox);
 
-    nativeLay->addWidget(new QPushButton(QStringLiteral("原生按钮")));
+    m_nativeBtn = new QPushButton;
+    nativeLay->addWidget(m_nativeBtn);
     nativeLay->addWidget(new QLineEdit);
 
-    auto* nativeCombo = new QComboBox;
-    nativeCombo->addItems({QStringLiteral("选项一"), QStringLiteral("选项二")});
-    nativeLay->addWidget(nativeCombo);
+    m_nativeCombo = new QComboBox;
+    m_nativeCombo->addItems({QString(), QString()}); // 文案由 retranslateNative 填充
+    nativeLay->addWidget(m_nativeCombo);
 
-    nativeLay->addWidget(new QCheckBox(QStringLiteral("原生复选框")));
-    nativeLay->addWidget(new QRadioButton(QStringLiteral("原生单选框")));
+    m_nativeCheck = new QCheckBox;
+    nativeLay->addWidget(m_nativeCheck);
+    m_nativeRadio = new QRadioButton;
+    nativeLay->addWidget(m_nativeRadio);
 
     auto* nativeProgress = new QProgressBar;
     nativeProgress->setValue(60);
     nativeLay->addWidget(nativeProgress);
 
-    root->addWidget(nativeBox);
+    root->addWidget(m_nativeBox);
 
-    // 绑定演示：输入框 ↔ 镜像标签
+    // 用例：完全独立的自定义控件（不继承 SControl/SControlBridge），
+    // 主题靠订阅 themeChanged + colorToken，翻译靠自身 changeEvent + tr()，
+    // 均为纯 Qt 原生方式，不需要注册、不需要 setProperty。
+    m_customBox = new QGroupBox;
+    auto* customLay = new QHBoxLayout(m_customBox);
+    auto* lightOnline = new StatusLight;  lightOnline->setStatus(StatusLight::Status::Online);
+    auto* lightWarning = new StatusLight; lightWarning->setStatus(StatusLight::Status::Warning);
+    auto* lightOffline = new StatusLight; lightOffline->setStatus(StatusLight::Status::Offline);
+    customLay->addWidget(lightOnline);
+    customLay->addWidget(lightWarning);
+    customLay->addWidget(lightOffline);
+    customLay->addStretch();
+    root->addWidget(m_customBox);
+
+    // 演示：输入框 → 镜像标签，纯原生 Qt 信号槽（不依赖 slabel 绑定能力）
     m_edit = new SLineEdit;
     m_edit->setProperty("slabelRole", "textInput");
     m_mirror = new SLabel;
-    BindingEngine::observe(m_edit, "text", [this](const QVariant& v){
-        m_mirror->setText(v.toString());
+    connect(m_edit, &QLineEdit::textChanged, this, [this](const QString& t){
+        m_mirror->setText(t);
     });
     root->addWidget(m_edit);
     root->addWidget(m_mirror);
@@ -90,4 +109,24 @@ Gallery::Gallery(QWidget* parent) : QWidget(parent) {
         m_en = !m_en;
         LanguageManager::instance().setLanguage(m_en ? "en" : "zh_CN");
     });
+
+    retranslateNative(); // 初始化原生控件文案
+}
+
+void Gallery::retranslateNative() {
+    // 纯 Qt 原生方式：用 tr() 重设每个原生控件的文案，无任何封装
+    m_nativeBox->setTitle(tr("原生 Qt 控件（零样式代码）"));
+    m_nativeBtn->setText(tr("原生按钮"));
+    m_nativeCombo->setItemText(0, tr("选项一"));
+    m_nativeCombo->setItemText(1, tr("选项二"));
+    m_nativeCheck->setText(tr("原生复选框"));
+    m_nativeRadio->setText(tr("原生单选框"));
+    m_customBox->setTitle(tr("独立自定义控件（不依赖 SControl）"));
+}
+
+void Gallery::changeEvent(QEvent* e) {
+    // LanguageManager 走原生 installTranslator，切语言时 Qt 自动派发此事件
+    if (e->type() == QEvent::LanguageChange)
+        retranslateNative();
+    QWidget::changeEvent(e);
 }
