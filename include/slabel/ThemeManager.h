@@ -3,7 +3,6 @@
 #include <QHash>
 #include <QSet>
 #include <QColor>
-#include <QIcon>
 #include "slabel/SGlobal.h"
 #include "slabel/ISControl.h"
 
@@ -29,7 +28,6 @@ public:
     // 未定义返回空字符串。类型转换由调用方按需选择下面的便捷方法或自行处理。
     QString token(const QString& name) const { return m_tokens.value(name); }
     QColor colorToken(const QString& name) const { return QColor(token(name)); }
-    QIcon iconToken(const QString& name) const { return QIcon(token(name)); }
 
 signals:
     void themeChanged(const QString& name);

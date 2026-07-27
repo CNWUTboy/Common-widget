@@ -39,8 +39,6 @@ HEADERS += Gallery.h \
            widgets/STableView.h \
            widgets/STreeView.h
 
-RESOURCES += resources/icons.qrc
-
 # 告诉示例主题和翻译的加载路径（必须是绝对路径，因为运行时 cwd 不确定）。
 # 与上面的 DESTDIR 指向同一个目录（项目根的 bin/），$$_PRO_FILE_PWD_ 恒等于
 # examples.pro 所在源码目录，不受实际构建目录影响。

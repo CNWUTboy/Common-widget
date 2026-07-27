@@ -22,7 +22,6 @@ add_executable(slabel_gallery
     widgets/STabWidget.h
     widgets/STableView.h
     widgets/STreeView.h
-    resources/icons.qrc
 )
 target_link_libraries(slabel_gallery PRIVATE slabel Qt5::Widgets)
 target_compile_definitions(slabel_gallery PRIVATE

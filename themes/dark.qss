@@ -1,34 +1,228 @@
-/* @primary:#3d0000 @bg:#101010 @text:#ffffff @border:#4d4d4d
+/* @primary:#3b82f6 @primaryHover:#60a5fa @primaryPressed:#2563eb
+   @bg:#1e2024 @surface:#26282d @surfaceAlt:#2f3238
+   @text:#e6e8ea @textMuted:#9aa1ab
+   @border:#3a3f47 @borderStrong:#4a505a @hover:#313640
+   @selBg:#3b82f6 @selText:#ffffff
+   @disabledBg:#26282d @disabledText:#6b7078
    @statusOnline:#3fb950 @statusWarning:#d29922 @statusOffline:#8b949e
-   @fontFamily:"Microsoft YaHei" @fontSizeBase:11px
-   @fontSizeButton:11px @fontSizeInput:11px @fontSizeCombo:11px
-   @fontSizeCheckBox:11px @fontSizeRadioButton:11px @fontSizeGroupBox:11px @fontSizeProgressBar:11px
-   @iconSave:":/icons/dark/save.svg" */
+   @fontFamily:"Microsoft YaHei" @fontSizeBase:13px
+   @fontSizeButton:13px @fontSizeInput:13px @fontSizeCombo:13px
+   @fontSizeCheckBox:13px @fontSizeRadioButton:13px @fontSizeGroupBox:13px @fontSizeProgressBar:13px */
 
-* { font-family:@fontFamily; font-size:@fontSizeBase; }
+/* ============================================================
+   标准风格样式 —— 暗夜（偏暗）主题。
+   本文件为 token 驱动：颜色/字体取值全部来自顶部 @token 表，
+   正文（选择器规则）与 default/light 完全一致，仅换头部取值即得不同主题。
+   覆盖 Qt 基础控件常规状态（normal/hover/pressed/checked/focus/disabled/selected）。
+   ============================================================ */
 
-QPushButton    { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; font-size:@fontSizeButton; }
-QLineEdit      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; font-size:@fontSizeInput; }
-QComboBox      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; font-size:@fontSizeCombo; }
-QCheckBox      { background:@bg; color:@text; font-size:@fontSizeCheckBox; }
-QRadioButton   { background:@bg; color:@text; font-size:@fontSizeRadioButton; }
-QGroupBox      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; font-size:@fontSizeGroupBox; }
-QProgressBar   { color:@text; border:1px solid @border; border-radius:4px; text-align:center; font-size:@fontSizeProgressBar; }
-QProgressBar::chunk { background:@primary; }
+/* ---- 基础 ---- */
+* { font-family:@fontFamily; font-size:@fontSizeBase; outline:0; }
+QWidget { background:@bg; color:@text; }
+QMainWindow, QDialog { background:@bg; }
+QWidget:disabled { color:@disabledText; }
+QFrame#line, QFrame[frameShape="4"], QFrame[frameShape="5"] { background:@border; border:none; }
+
+/* ---- 文本类 ---- */
+QLabel { background:transparent; color:@text; }
+QLabel:disabled { color:@disabledText; }
+QToolTip { background:@surface; color:@text; border:1px solid @borderStrong; padding:4px 6px; }
+
+/* ---- 按钮 ---- */
+QPushButton {
+    background:@surface; color:@text;
+    border:1px solid @border; border-radius:4px;
+    padding:5px 14px; min-height:16px; font-size:@fontSizeButton;
+}
+QPushButton:hover { background:@hover; border-color:@borderStrong; }
+QPushButton:pressed { background:@surfaceAlt; }
+QPushButton:default { border-color:@primary; }
+QPushButton:checked { background:@primary; color:@selText; border-color:@primary; }
+QPushButton:focus { border-color:@primary; }
+QPushButton:disabled { background:@disabledBg; color:@disabledText; border-color:@border; }
+
+QToolButton {
+    background:transparent; color:@text;
+    border:1px solid transparent; border-radius:4px; padding:4px 6px;
+}
+QToolButton:hover { background:@hover; border-color:@border; }
+QToolButton:pressed, QToolButton:checked { background:@surfaceAlt; border-color:@borderStrong; }
+QToolButton:disabled { color:@disabledText; }
+
+/* ---- 复选/单选 ---- */
+QCheckBox { background:transparent; color:@text; spacing:6px; font-size:@fontSizeCheckBox; }
+QCheckBox:disabled { color:@disabledText; }
+QCheckBox::indicator, QRadioButton::indicator { width:16px; height:16px; }
+QCheckBox::indicator { border:1px solid @borderStrong; border-radius:3px; background:@surface; }
+QCheckBox::indicator:hover { border-color:@primary; }
+QCheckBox::indicator:checked { background:@primary; border-color:@primary; }
+QCheckBox::indicator:indeterminate { background:@primaryHover; border-color:@primary; }
+QCheckBox::indicator:disabled { background:@disabledBg; border-color:@border; }
+
+QRadioButton { background:transparent; color:@text; spacing:6px; font-size:@fontSizeRadioButton; }
+QRadioButton:disabled { color:@disabledText; }
+QRadioButton::indicator { border:1px solid @borderStrong; border-radius:8px; background:@surface; }
+QRadioButton::indicator:hover { border-color:@primary; }
+QRadioButton::indicator:checked { background:@primary; border-color:@primary; }
+QRadioButton::indicator:disabled { background:@disabledBg; border-color:@border; }
+
+/* ---- 输入框 ---- */
+QLineEdit {
+    background:@surface; color:@text;
+    border:1px solid @border; border-radius:4px; padding:4px 8px;
+    selection-background-color:@selBg; selection-color:@selText; font-size:@fontSizeInput;
+}
+QLineEdit:focus { border-color:@primary; }
+QLineEdit:disabled { background:@disabledBg; color:@disabledText; }
+QLineEdit:read-only { background:@surfaceAlt; color:@textMuted; }
+
+QTextEdit, QPlainTextEdit {
+    background:@surface; color:@text;
+    border:1px solid @border; border-radius:4px; padding:2px;
+    selection-background-color:@selBg; selection-color:@selText;
+}
+QTextEdit:focus, QPlainTextEdit:focus { border-color:@primary; }
+
+/* ---- 数字框 / 日期时间框 ---- */
+QAbstractSpinBox {
+    background:@surface; color:@text;
+    border:1px solid @border; border-radius:4px; padding:3px 6px;
+    selection-background-color:@selBg; selection-color:@selText;
+}
+QAbstractSpinBox:focus { border-color:@primary; }
+QAbstractSpinBox:disabled { background:@disabledBg; color:@disabledText; }
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+    background:@surfaceAlt; border-left:1px solid @border; width:16px;
+}
+QAbstractSpinBox::up-button:hover, QAbstractSpinBox::down-button:hover { background:@hover; }
+
+/* ---- 下拉框 ---- */
+QComboBox {
+    background:@surface; color:@text;
+    border:1px solid @border; border-radius:4px; padding:4px 8px; min-height:16px;
+    font-size:@fontSizeCombo;
+}
+QComboBox:hover { border-color:@borderStrong; }
+QComboBox:focus, QComboBox:on { border-color:@primary; }
+QComboBox:disabled { background:@disabledBg; color:@disabledText; }
+QComboBox::drop-down { subcontrol-origin:padding; subcontrol-position:top right; width:20px;
+    border-left:1px solid @border; }
+QComboBox QAbstractItemView {
+    background:@surface; color:@text;
+    border:1px solid @borderStrong;
+    selection-background-color:@selBg; selection-color:@selText;
+    outline:0;
+}
+
+/* ---- 进度条 ---- */
+QProgressBar {
+    background:@surfaceAlt; color:@text;
+    border:1px solid @border; border-radius:4px; text-align:center;
+    min-height:16px; font-size:@fontSizeProgressBar;
+}
+QProgressBar::chunk { background:@primary; border-radius:3px; }
+
+/* ---- 滑块 ---- */
+QSlider::groove:horizontal { background:@surfaceAlt; height:4px; border-radius:2px; }
+QSlider::sub-page:horizontal { background:@primary; border-radius:2px; }
+QSlider::handle:horizontal { background:@primary; width:14px; margin:-6px 0; border-radius:7px; }
+QSlider::handle:horizontal:hover { background:@primaryHover; }
+QSlider::groove:vertical { background:@surfaceAlt; width:4px; border-radius:2px; }
+QSlider::add-page:vertical { background:@primary; border-radius:2px; }
+QSlider::handle:vertical { background:@primary; height:14px; margin:0 -6px; border-radius:7px; }
+QSlider::handle:vertical:hover { background:@primaryHover; }
+
+/* ---- 滚动条 ---- */
+QScrollBar:vertical { background:@bg; width:12px; margin:0; }
+QScrollBar::handle:vertical { background:@borderStrong; min-height:24px; border-radius:6px; margin:2px; }
+QScrollBar::handle:vertical:hover { background:@primary; }
+QScrollBar:horizontal { background:@bg; height:12px; margin:0; }
+QScrollBar::handle:horizontal { background:@borderStrong; min-width:24px; border-radius:6px; margin:2px; }
+QScrollBar::handle:horizontal:hover { background:@primary; }
+QScrollBar::add-line, QScrollBar::sub-line { background:transparent; border:none; width:0; height:0; }
+QScrollBar::add-page, QScrollBar::sub-page { background:transparent; }
+
+/* ---- 分组框 ---- */
+QGroupBox {
+    background:transparent; color:@text;
+    border:1px solid @border; border-radius:6px; margin-top:10px; padding-top:6px;
+    font-size:@fontSizeGroupBox;
+}
+QGroupBox::title { subcontrol-origin:margin; subcontrol-position:top left; left:10px; padding:0 4px; color:@textMuted; }
+
+/* ---- 选项卡 ---- */
+QTabWidget::pane { border:1px solid @border; border-radius:4px; top:-1px; }
+QTabBar::tab {
+    background:@surfaceAlt; color:@textMuted;
+    border:1px solid @border; border-bottom:none;
+    border-top-left-radius:4px; border-top-right-radius:4px;
+    padding:6px 14px; margin-right:2px;
+}
+QTabBar::tab:hover { color:@text; background:@hover; }
+QTabBar::tab:selected { background:@surface; color:@text; border-color:@primary; }
+QTabBar::tab:disabled { color:@disabledText; }
+
+/* ---- 菜单栏 / 菜单 ---- */
+QMenuBar { background:@surface; color:@text; border-bottom:1px solid @border; }
+QMenuBar::item { background:transparent; padding:5px 10px; }
+QMenuBar::item:selected { background:@hover; }
+QMenuBar::item:pressed { background:@primary; color:@selText; }
+QMenu { background:@surface; color:@text; border:1px solid @borderStrong; padding:4px; }
+QMenu::item { padding:5px 24px 5px 20px; border-radius:4px; }
+QMenu::item:selected { background:@selBg; color:@selText; }
+QMenu::item:disabled { color:@disabledText; }
+QMenu::separator { height:1px; background:@border; margin:4px 8px; }
+
+/* ---- 工具栏 / 状态栏 / 停靠 ---- */
+QToolBar { background:@surface; border:none; spacing:4px; padding:3px; }
+QToolBar::separator { background:@border; width:1px; margin:4px; }
+QStatusBar { background:@surface; color:@textMuted; border-top:1px solid @border; }
+QStatusBar::item { border:none; }
+QDockWidget { color:@text; }
+QDockWidget::title { background:@surfaceAlt; padding:5px 8px; border:1px solid @border; }
+QSplitter::handle { background:@border; }
+QSplitter::handle:hover { background:@primary; }
+QSizeGrip { background:transparent; width:12px; height:12px; }
+
+/* ---- 视图（表格/树/列表） ---- */
+QAbstractItemView {
+    background:@surface; color:@text;
+    border:1px solid @border; border-radius:4px;
+    alternate-background-color:@surfaceAlt;
+    selection-background-color:@selBg; selection-color:@selText;
+    outline:0;
+}
+QAbstractItemView::item { padding:4px; }
+QAbstractItemView::item:hover { background:@hover; }
+QAbstractItemView::item:selected { background:@selBg; color:@selText; }
+QTableView { gridline-color:@border; }
+QHeaderView { background:@surfaceAlt; }
+QHeaderView::section {
+    background:@surfaceAlt; color:@textMuted;
+    border:none; border-right:1px solid @border; border-bottom:1px solid @border;
+    padding:5px 8px;
+}
+QHeaderView::section:hover { background:@hover; }
+QTableCornerButton::section { background:@surfaceAlt; border:none; }
+
+/* ============================================================
+   slabel 角色/状态选择器（保留：供 SControl 体系与既有示例/测试使用）
+   ============================================================ */
+*[slabelRole="primaryButton"] { background:@primary; color:@selText; border:none; border-radius:4px; padding:6px 12px; font-size:@fontSizeButton; }
+*[slabelRole="primaryButton"]:hover { background:@primaryHover; }
+*[slabelRole="primaryButton"]:pressed { background:@primaryPressed; }
+*[slabelRole="textInput"]     { background:@surface; color:@text; border:1px solid @border; border-radius:4px; padding:4px; font-size:@fontSizeInput; }
+*[slabelRole="comboBox"]      { background:@surface; color:@text; border:1px solid @border; border-radius:4px; font-size:@fontSizeCombo; }
+*[slabelRole="checkBox"]      { color:@text; font-size:@fontSizeCheckBox; }
+*[slabelRole="radioButton"]   { color:@text; font-size:@fontSizeRadioButton; }
+*[slabelRole="groupBox"]      { color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; font-size:@fontSizeGroupBox; }
+*[slabelRole="progressBar"]   { border:1px solid @border; border-radius:4px; text-align:center; font-size:@fontSizeProgressBar; }
+*[slabelRole="progressBar"]::chunk { background:@primary; }
+
+*[slabelOperationState="busy"]    { background:#6c757d; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; }
+*[slabelOperationState="success"] { background:#28a745; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; }
+*[slabelOperationState="failure"] { background:#dc3545; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; }
 
 /* 自定义按钮 AccentButton：以类名为选择器，全局控制该类型所有实例的风格 */
 AccentButton { background:transparent; color:@primary; border:2px solid @primary; border-radius:14px; padding:6px 16px; font-weight:bold; }
 AccentButton:hover { background:@primary; color:#ffffff; }
-
-*[slabelRole="primaryButton"] { background:@primary; color:#ffffff; border:none; border-radius:4px; padding:6px 12px; font-size:@fontSizeButton; qproperty-icon: url(@iconSave); }
-*[slabelRole="textInput"]     { background:@bg; color:@text; border:1px solid @border; border-radius:4px; padding:4px; font-size:@fontSizeInput; }
-*[slabelRole="comboBox"]      { background:@bg; color:@text; border:1px solid @border; border-radius:4px; font-size:@fontSizeCombo; }
-*[slabelRole="checkBox"]      { background:@bg; color:@text; font-size:@fontSizeCheckBox; }
-*[slabelRole="radioButton"]   { background:@bg; color:@text; font-size:@fontSizeRadioButton; }
-*[slabelRole="groupBox"]      { background:@bg;  color:@text; border:1px solid @border; border-radius:4px; margin-top:6px; font-size:@fontSizeGroupBox; }
-*[slabelRole="progressBar"]   { color:@text;  border:1px solid @border; border-radius:4px; text-align:center; font-size:@fontSizeProgressBar; }
-*[slabelRole="progressBar"]::chunk { background:@primary; }
-
-*[slabelOperationState="busy"]    { background:#5a5f63; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
-*[slabelOperationState="success"] { background:#2fa84f; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }
-*[slabelOperationState="failure"] { background:#c94f4f; color:#eff0f1; border:none; border-radius:4px; padding:6px 12px; }

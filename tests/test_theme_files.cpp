@@ -55,18 +55,16 @@ private slots:
             QVERIFY(QRegularExpression(QRegularExpression::escape(cls) + QStringLiteral("\\s*\\{"))
                         .match(darkText).hasMatch());
     }
-    void defaultThemesContainFontAndIconTokens() {
+    void defaultThemesContainFontTokens() {
         QFile def(QStringLiteral(THEME_DIR "/default.qss"));
         QVERIFY(def.open(QIODevice::ReadOnly | QIODevice::Text));
         const QString defText = QString::fromUtf8(def.readAll());
         QVERIFY(defText.contains(QStringLiteral("font-family")));
-        QVERIFY(defText.contains(QStringLiteral(":/icons/light/save.svg")));
 
         QFile dark(QStringLiteral(THEME_DIR "/dark.qss"));
         QVERIFY(dark.open(QIODevice::ReadOnly | QIODevice::Text));
         const QString darkText = QString::fromUtf8(dark.readAll());
         QVERIFY(darkText.contains(QStringLiteral("font-family")));
-        QVERIFY(darkText.contains(QStringLiteral(":/icons/dark/save.svg")));
     }
 };
 
