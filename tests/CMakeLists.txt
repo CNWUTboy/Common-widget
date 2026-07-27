@@ -31,3 +31,26 @@ slabel_test(test_font_tokens)
 target_compile_definitions(test_font_tokens PRIVATE THEME_DIR="${CMAKE_BINARY_DIR}/themes")
 slabel_test(test_control_engine)
 slabel_test(test_version)
+
+# ---- 全局零接入主题/语言库测试 ----
+# 生成测试用翻译夹具 zz.qm（源 fixtures/zz.ts）
+qt5_add_translation(GLOBAL_FIX_QM fixtures/zz.ts)
+add_custom_target(global_fixture_qm ALL DEPENDS ${GLOBAL_FIX_QM})
+
+slabel_test(test_text_accessors)
+
+slabel_test(test_global_retranslate)
+add_dependencies(test_global_retranslate global_fixture_qm)
+target_compile_definitions(test_global_retranslate PRIVATE
+    GLOBAL_QM_DIR="${CMAKE_CURRENT_BINARY_DIR}"
+    GLOBAL_TS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+
+slabel_test(test_global_initial_lang)
+add_dependencies(test_global_initial_lang global_fixture_qm)
+target_compile_definitions(test_global_initial_lang PRIVATE
+    GLOBAL_QM_DIR="${CMAKE_CURRENT_BINARY_DIR}"
+    GLOBAL_TS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+
+slabel_test(test_global_theme)
+add_dependencies(test_global_theme slabel_themes)
+target_compile_definitions(test_global_theme PRIVATE THEME_DIR="${CMAKE_BINARY_DIR}/themes")

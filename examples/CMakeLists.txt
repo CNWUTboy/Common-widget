@@ -28,3 +28,16 @@ target_link_libraries(slabel_gallery PRIVATE slabel Qt5::Widgets)
 target_compile_definitions(slabel_gallery PRIVATE
     THEME_DIR="${CMAKE_BINARY_DIR}/themes"
     TRANS_DIR="${CMAKE_BINARY_DIR}/translations")
+
+# ---- 零接入全局管理演示（独立可执行）----
+# 演示专用翻译：en.ts -> en.qm（生成到 examples 构建目录）
+qt5_add_translation(DEMO_QM translations/en.ts)
+add_custom_target(slabel_global_demo_qm ALL DEPENDS ${DEMO_QM})
+
+add_executable(slabel_global_demo global_demo.cpp)
+add_dependencies(slabel_global_demo slabel_global_demo_qm slabel_themes)
+target_link_libraries(slabel_global_demo PRIVATE slabel Qt5::Widgets)
+target_compile_definitions(slabel_global_demo PRIVATE
+    THEME_DIR="${CMAKE_BINARY_DIR}/themes"
+    DEMO_LANG_DIR="${CMAKE_CURRENT_BINARY_DIR}"
+    DEMO_TS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/translations")

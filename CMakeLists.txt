@@ -15,20 +15,28 @@ find_package(Qt5 5.15 REQUIRED COMPONENTS Widgets Test LinguistTools)
 # ---- 显式列举源文件，避免 file(GLOB) 反模式 ----
 set(SLABEL_SOURCES
     src/BindingEngine.cpp
+    src/GlobalRetranslator.cpp
+    src/GlobalUiManager.cpp
     src/LanguageManager.cpp
+    src/ReverseTranslationCatalog.cpp
     src/SBindable.cpp
     src/SControlBridge.cpp
     src/SControlCore.cpp
     src/SControlEngine.cpp
     src/slabel_version.cpp
+    src/TextAccessorRegistry.cpp
     src/ThemeManager.cpp
 )
 
 set(SLABEL_HEADERS
     include/slabel/BindingEngine.h
+    include/slabel/GlobalRetranslator.h
+    include/slabel/GlobalUiManager.h
     include/slabel/ISControl.h
     include/slabel/LanguageManager.h
     include/slabel/OperationState.h
+    include/slabel/ReverseTranslationCatalog.h
+    include/slabel/TextAccessorRegistry.h
     include/slabel/SBindable.h
     include/slabel/SControl.h
     include/slabel/SControlBridge.h

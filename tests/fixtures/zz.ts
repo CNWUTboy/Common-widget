@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="zz">
+<context>
+    <name>MyButton</name>
+    <message>
+        <source>Go</source>
+        <translation>GoZZ</translation>
+    </message>
+</context>
+<context>
+    <name>App</name>
+    <message>
+        <source>Save</source>
+        <translation>SaveZZ</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>CancelZZ</translation>
+    </message>
+    <message>
+        <source>Opt1</source>
+        <translation>Opt1ZZ</translation>
+    </message>
+    <message>
+        <source>Opt2</source>
+        <translation>Opt2ZZ</translation>
+    </message>
+    <message>
+        <source>TabA</source>
+        <translation>TabAZZ</translation>
+    </message>
+    <message>
+        <source>TabB</source>
+        <translation>TabBZZ</translation>
+    </message>
+    <message>
+        <source>Hint</source>
+        <translation>HintZZ</translation>
+    </message>
+</context>
+<context>
+    <name>AmbA</name>
+    <message>
+        <source>Color</source>
+        <translation>ColorZZ_A</translation>
+    </message>
+</context>
+<context>
+    <name>AmbB</name>
+    <message>
+        <source>Color</source>
+        <translation>ColorZZ_B</translation>
+    </message>
+</context>
+<context>
+    <name>CellModel</name>
+    <message>
+        <source>Cell</source>
+        <translation>CellZZ</translation>
+    </message>
+</context>
+</TS>
