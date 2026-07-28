@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
 
     LanguageManager::instance().registerLanguage("zh_CN", QStringLiteral(TRANS_DIR "/slabel_zh_CN.qm"));
     LanguageManager::instance().registerLanguage("en", QStringLiteral(TRANS_DIR "/slabel_en.qm"));
+    LanguageManager::instance().setLanguage("zh_CN");  // 初始默认中文
 
     Gallery w;
     w.resize(360, 480);

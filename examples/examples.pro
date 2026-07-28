@@ -23,6 +23,8 @@ SOURCES += main.cpp \
 
 HEADERS += Gallery.h \
            SSwatch.h \
+           StatusLight.h \
+           AccentButton.h \
            widgets/SButton.h \
            widgets/SCheckBox.h \
            widgets/SComboBox.h \
@@ -42,7 +44,16 @@ HEADERS += Gallery.h \
 # 告诉示例主题和翻译的加载路径（必须是绝对路径，因为运行时 cwd 不确定）。
 # 与上面的 DESTDIR 指向同一个目录（项目根的 bin/），$$_PRO_FILE_PWD_ 恒等于
 # examples.pro 所在源码目录，不受实际构建目录影响。
-THEMES_PATH = $$_PRO_FILE_PWD_/../bin/themes
-TRANS_PATH  = $$_PRO_FILE_PWD_/../bin/translations
-DEFINES += THEME_DIR=\\\"$$shell_path($$THEMES_PATH)\\\"
-DEFINES += TRANS_DIR=\\\"$$shell_path($$TRANS_PATH)\\\"
+# clean_path 先消除路径中的 .. 再 shell_path 转平台格式，避免 QFile 打开失败。
+THEMES_PATH = $$clean_path($$_PRO_FILE_PWD_/../bin/themes)
+TRANS_PATH  = $$clean_path($$_PRO_FILE_PWD_/../bin/translations)
+# shell_path 在 win32-g++ 上产生 MSYS 格式 /D/... —— Windows 原生运行时不认识
+THEMES_PATH = $$shell_path($$THEMES_PATH)
+TRANS_PATH  = $$shell_path($$TRANS_PATH)
+# 把 /X/ 前缀转为 X:/ 格式（与 CMake 行为一致），不再调用 shell_path
+win32-g++ {
+    THEMES_PATH = $$replace(THEMES_PATH, ^/([a-zA-Z])/, \\1:/)
+    TRANS_PATH  = $$replace(TRANS_PATH,  ^/([a-zA-Z])/, \\1:/)
+}
+DEFINES += THEME_DIR=\\\"$$THEMES_PATH\\\"
+DEFINES += TRANS_DIR=\\\"$$TRANS_PATH\\\"

@@ -9,4 +9,4 @@ LIBS += -L../bin -lslabel
 SOURCES = test_font_tokens.cpp
 
 # 告诉测试代码主题文件所在目录（与 CMake 的 THEME_DIR 等效）
-DEFINES += THEME_DIR=\\\"$$shell_path($${_PRO_FILE_PWD_}/../build/themes)\\\"
+DEFINES += THEME_DIR=\\\"$$shell_path($$clean_path($$_PRO_FILE_PWD_/../bin/themes))\\\"
