@@ -1,4 +1,11 @@
 #pragma once
+/**
+ * @file GlobalRetranslator.h
+ * @brief 零接入全局重译引擎：作为 qApp 全局事件过滤器捕获控件文本并整树重译。
+ *
+ * 在每个控件出现时捕获其文本作为"源键"，切换语言时遍历注册表整树回填；
+ * 对 model/view 触发刷新。不要求控件覆写 changeEvent，不修改控件代码。
+ */
 #include <QObject>
 #include <QHash>
 #include <QVector>
@@ -16,31 +23,72 @@ class QAction;
 class QAbstractItemView;
 class QEvent;
 
-// 零接入全局重译引擎：作为 qApp 的全局事件过滤器，在每个控件出现时捕获其
-// 文本作为"源键"，切换语言时遍历注册表整树回填；对 model/view 触发刷新。
-// 不要求控件覆写 changeEvent，不修改控件代码。
+/**
+ * @brief 零接入全局重译引擎：作为 qApp 的全局事件过滤器，在每个控件出现时捕获其
+ *        文本作为"源键"，切换语言时遍历注册表整树回填；对 model/view 触发刷新。
+ *
+ * 不要求控件覆写 changeEvent，不修改控件代码。
+ */
 class SLABEL_EXPORT GlobalRetranslator : public QObject {
     Q_OBJECT
 public:
+    /**
+     * @brief 构造。
+     * @param parent 父对象。
+     */
     explicit GlobalRetranslator(QObject* parent = nullptr);
 
+    /**
+     * @brief 设置源语言标识；若当前语言尚未初始化则一并设为源语言。
+     * @param lang 源语言标识（构造期约定为此语言）。
+     */
     void setSourceLanguage(const QString& lang) { m_sourceLang = lang; if (m_current.isEmpty()) m_current = lang; }
+    /**
+     * @brief 查询源语言标识。
+     * @return 源语言标识。
+     */
     QString sourceLanguage() const { return m_sourceLang; }
 
-    // 登记一个语言：name + .qm 路径（用于 QTranslator），可选 .ts 路径（用于反查目录兜底）
+    /**
+     * @brief 登记一个语言。
+     * @param name 语言名。
+     * @param qmPath .qm 文件路径（用于 QTranslator）。
+     * @param tsPath 可选 .ts 文件路径（用于反查目录兜底）。
+     */
     void addLanguage(const QString& name, const QString& qmPath, const QString& tsPath = QString());
 
-    // 安装为全局事件过滤器（应在任何 UI 构造前调用）
+    /**
+     * @brief 安装为全局事件过滤器。
+     * @param app 应用对象。
+     * @note 应在任何 UI 构造前调用。
+     */
     void installOn(QApplication& app);
 
-    // 切换当前语言并整树重译。切到源语言=卸载翻译器、恢复源文。成功返回 true。
+    /**
+     * @brief 切换当前语言并整树重译。
+     * @param name 目标语言名；切到源语言=卸载翻译器、恢复源文。
+     * @return 成功返回 true。
+     */
     bool setLanguage(const QString& name);
+    /**
+     * @brief 查询当前语言名。
+     * @return 当前语言名。
+     */
     QString currentLanguage() const { return m_current; }
 
-    // 使用方运行时改过某控件文字后，主动重采其源键（丢弃旧捕获重新登记）
+    /**
+     * @brief 使用方运行时改过某控件文字后，主动重采其源键（丢弃旧捕获重新登记）。
+     * @param w 目标控件。
+     */
     void refreshSource(QWidget* w);
 
 protected:
+    /**
+     * @brief 全局事件过滤器：在 Polish/Show/ActionAdded 时捕获控件/动作文本。
+     * @param obj 事件目标对象。
+     * @param e 事件对象。
+     * @return 始终返回 false（绝不吞事件）。
+     */
     bool eventFilter(QObject* obj, QEvent* e) override;
 
 private:

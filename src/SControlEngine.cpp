@@ -1,3 +1,8 @@
+/**
+ * @file SControlEngine.cpp
+ * @brief SControlEngine 的实现：主题覆盖表的 QSS 应用，以及操作状态机的状态迁移、
+ *        超时/复位定时与默认视觉反馈（动态属性 + QSS 属性选择器）。
+ */
 #include "slabel/SControlEngine.h"
 #include <QStyle>
 #include <QVariant>

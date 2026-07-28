@@ -1,3 +1,7 @@
+/**
+ * @file TextAccessorRegistry.cpp
+ * @brief TextAccessorRegistry 的实现：内置各 Qt 控件类型的文本槽枚举器与按类型收集去重逻辑。
+ */
 #include "slabel/TextAccessorRegistry.h"
 
 #include <QWidget>

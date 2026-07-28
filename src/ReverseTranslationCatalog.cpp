@@ -1,3 +1,7 @@
+/**
+ * @file ReverseTranslationCatalog.cpp
+ * @brief ReverseTranslationCatalog 的实现：用 QXmlStreamReader 解析 .ts 文件并构建源串<->译文正反查映射。
+ */
 #include "slabel/ReverseTranslationCatalog.h"
 
 #include <QFile>

@@ -1,3 +1,8 @@
+/**
+ * @file LanguageManager.cpp
+ * @brief 语言管理器 LanguageManager 的实现。
+ */
+
 #include "slabel/LanguageManager.h"
 #include <QApplication>
 

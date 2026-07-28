@@ -1,3 +1,8 @@
+/**
+ * @file SControlBridge.cpp
+ * @brief SControlBridge 的实现：向 ThemeManager/LanguageManager 注册注销、
+ *        基于运行时属性查找的文本重译、LanguageChange 事件过滤，以及 slabelAttach()。
+ */
 #include "slabel/SControlBridge.h"
 #include "slabel/ThemeManager.h"
 #include "slabel/LanguageManager.h"

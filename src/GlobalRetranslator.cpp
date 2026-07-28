@@ -1,3 +1,7 @@
+/**
+ * @file GlobalRetranslator.cpp
+ * @brief GlobalRetranslator 的实现：控件/动作文本捕获、整树回填、model/view 刷新与源串正反查解析。
+ */
 #include "slabel/GlobalRetranslator.h"
 
 #include <QApplication>

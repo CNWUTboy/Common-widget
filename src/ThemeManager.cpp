@@ -1,3 +1,8 @@
+/**
+ * @file ThemeManager.cpp
+ * @brief 主题管理器 ThemeManager 的实现。
+ */
+
 #include "slabel/ThemeManager.h"
 #include <QApplication>
 #include <QFile>

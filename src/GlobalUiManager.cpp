@@ -1,3 +1,7 @@
+/**
+ * @file GlobalUiManager.cpp
+ * @brief GlobalUiManager 的实现：主题/语言目录扫描注册、安装事件过滤器、切换主题与语言。
+ */
 #include "slabel/GlobalUiManager.h"
 #include "slabel/GlobalRetranslator.h"
 #include "slabel/ThemeManager.h"

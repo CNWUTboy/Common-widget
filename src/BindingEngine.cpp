@@ -1,3 +1,8 @@
+/**
+ * @file BindingEngine.cpp
+ * @brief 属性绑定引擎的实现：Binding 的信号连接、双向同步与生命周期管理，
+ *        以及 BindingEngine 的 registry 维护与 bind/observe/unbind 入口。
+ */
 #include "slabel/BindingEngine.h"
 #include <QMetaProperty>
 #include <QMetaMethod>
