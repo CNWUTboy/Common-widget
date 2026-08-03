@@ -59,10 +59,11 @@ int main(int argc, char** argv) {
     QApplication app(argc, argv);
 
     // 契约：install 最先调用（QApplication 之后、任何 UI 构造之前）
+    // 资源路径用 Qt 资源系统（:/），已嵌入可执行文件，安装/移动后仍可用
     GlobalUiOptions opt;
-    opt.themeDir = THEME_DIR;                 // 复用现有 themes（default/dark/light）
-    opt.languageDir = DEMO_LANG_DIR;          // 含 en.qm
-    opt.translationSourceDir = DEMO_TS_DIR;   // 含 en.ts（源串反查目录）
+    opt.themeDir = ":/themes";                // 嵌入的 themes（default/light/dark）
+    opt.languageDir = ":/translations";       // 嵌入的 en.qm
+    opt.translationSourceDir = ":/ts";        // 嵌入的 en.ts（源串反查目录）
     opt.sourceLanguage = "zh_CN";             // 源码文案为中文
     opt.initialTheme = "default";
     GlobalUiManager::install(app, opt);
